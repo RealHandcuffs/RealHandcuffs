@@ -67,10 +67,10 @@ fi
 SOURCE_F4SE=$(echo "$SOURCE_F4SE" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')
 
 # set up a function to compile all scripts in a folder using parallel execution
-# $1: input folder (must be inside "package" folder and contain 'Source/User' folder)
+# $1: input folder (must be subfolder of "package" folder and contain 'Source/User' folder)
 # $2: additional imports
 function compile_folder() { # $1: folder, $2: additional imports
-  cd "$BASE_DIR/package/$1/Source/User"
+  cd "$BASE_DIR/$1/Source/User"
   if [[ $QUIET == 0 ]]
   then
     echo "Compiling: $1"
@@ -99,7 +99,7 @@ function compile_folder() { # $1: folder, $2: additional imports
   then
     for file in "${failures[@]}"
     do
-      echo "ERROR: Compilation failed for: package/$1/Source/User/$(echo $file | sed 's/\\/\//g')."
+      echo "ERROR: Compilation failed for: $1/Source/User/$(echo $file | sed 's/\\/\//g')."
     done
     exit -1
   else
@@ -113,11 +113,11 @@ function compile_folder() { # $1: folder, $2: additional imports
 
 # call the function for the package/0_Common folder, using LL_FourPlay as dependency
 SOURCE_LL_FOURPLAY=$(echo "$BASE_DIR/package/5_ThirdParty/LL FourPlay community F4SE plugin/Scripts/Source/User" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')
-compile_folder "0_Common/Scripts" "$SOURCE_LL_FOURPLAY"
+compile_folder "package/0_Common/Scripts" "$SOURCE_LL_FOURPLAY"
 
 # call the function for all other script folders, using 0_Common as dependency (but skip 5_ThirdParty)
 SOURCE_RH_COMMON=$(echo "$BASE_DIR/package/0_Common/Scripts/Source/User" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')
-find package -name '*.psc' ! -path 'package/0_Common/*' ! -path 'package/5_ThirdParty/*' | sed -rn 's/package\/(.*)\/Source\/User\/.*\.psc/\1/p' | sort -u |\
+find package -name '*.psc' ! -path 'package/0_Common/*' ! -path 'package/5_ThirdParty/*' | sed -rn 's/(package\/.*)\/Source\/User\/.*\.psc/\1/p' | sort -u |\
 while read -r i
 do
   compile_folder "$i" "$SOURCE_RH_COMMON"
