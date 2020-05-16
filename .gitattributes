@@ -1,6 +1,7 @@
 *.bgsm binary
 *.dds binary
 *.dll binary
+*.esp binary
 *.hkx binary
 *.nif binary
 *.wav binary
