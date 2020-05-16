@@ -379,13 +379,6 @@ String Function AddToList(String list, String item)
 EndFunction
 
 ;
-; CHeck if an actor is wearing a vanilla shock collar.
-;
-Bool Function IsWearingVanillaShockCollar(Actor akActor)
-    Rturn ShockCollar != None && akActor.IsEquipped(ShockCollar)
-EndFunction
-
-;
 ; Check if an actor is an armor rack instead of a real actor.
 ;
 Bool Function IsArmorRack(Actor akActor)
