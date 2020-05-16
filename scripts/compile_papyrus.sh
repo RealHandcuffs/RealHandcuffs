@@ -39,6 +39,7 @@ cd "$BASE_DIR"
 echo "#!/bin/bash" > build/setenv.sh
 scripts/find_tools.sh -g >> build/setenv.sh
 . build/setenv.sh
+rm ./build/setenv.sh
 
 # find base source directory for papyrus compiler (installed with creation kit)
 SOURCE_BASE="$DIR_FALLOUT4CREATIONKIT/Data/Scripts/Source/Base"
@@ -69,12 +70,12 @@ SOURCE_F4SE=$(echo "$SOURCE_F4SE" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g
 # set up a function to compile all scripts in a folder using parallel execution
 # $1: input folder (must be subfolder of "package" folder and contain 'Source/User' folder)
 # $2: additional imports
-function compile_folder() { # $1: folder, $2: additional imports
-  cd "$BASE_DIR/$1/Source/User"
+function compile_folder() {
   if [[ $QUIET == 0 ]]
   then
     echo "Compiling: $1"
   fi
+  cd "$BASE_DIR/$1/Source/User"
   files=()
   pids=()
   # the for loops works because the folders (which correspond to namespaces) have no whitespace
