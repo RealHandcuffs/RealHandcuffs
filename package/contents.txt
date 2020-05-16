@@ -1,0 +1,25 @@
++- 0_Common/                                files used by both Standard Edition and Lite Edition
++- 1_Standard/                              files used by Standard Edition (in addition to common files)
++- 2_Lite/                                  files used by Lite Edition (in addition to common files)
++- 3_Convert/                               optional files to allow manual conversion of handcuffs
++- 4_Compatibility/
+|   +- AWKCR/                               optional files to improve compatibility with Armor and Weapon Keywords Community Resource (AWKCR)
+|   +- Devious Devices/                     optional files to improve compatibility with Devious Devices
+|   +- Devious Devices Servitron/           optional files to improve compatibility with Devious Devices and with Servitron - use this folder instead of Devious Devices and Servitron folders if using both
+|   +- Just Business/                       optional files to improve compatibility with Just Business
+|   +- Servitron/                           optional files to improve compatibility with Servitron
+|
++- 5_ThirdParty/
++- +- LL FourPlay community F4SE plugin/    fourPlay F4SE community plugin
+|  +- original locations.txt                contains the locations where the third party files were downloaded from
+|
++- FOMod/
+|   +- info.xml                             FOMOD metadata
+|   +- ModuleConfig.xml                     FOMOD installer script
+|
++- Resources                                additional resources, not required for the mod
+|
++- changelog.txt                            internal development changelog
++- contents.txt                             this file
++- installation.txt                         manual installation instructions
++- LICENSE.txt                              the license for this package: CC0 license

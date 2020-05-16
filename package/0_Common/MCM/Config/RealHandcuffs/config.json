@@ -1,0 +1,681 @@
+{
+  "modName": "RealHandcuffs",
+  "displayName": "Real Handcuffs",
+  "minMcmVersion": 6,
+  "pluginRequirements": [
+    "RealHandcuffs.esp"
+  ],
+  "content": [
+    {
+      "text": "<font size='40'>Real Handcuffs</font>",
+      "type": "text",
+      "html": true
+    },
+    {
+      "text": "Installed Version",
+      "type": "section"
+    },
+    {
+      "textFromStringProperty": {
+        "form": "RealHandcuffs.esp|000F99",
+        "scriptName": "RealHandcuffs:McmInteraction",
+        "propertyName": "FullVersionAndEdition"
+      },      
+      "type": "text",
+      "html": true
+    },
+    {
+      "type": "spacer",
+      "numLines": 1
+    },
+    {
+      "type": "hiddenSwitcher",
+      "groupControl": 1,
+      "valueOptions": 
+      {
+        "sourceType": "PropertyValueBool",
+        "sourceForm": "RealHandcuffs.esp|000F99",
+        "scriptName": "RealHandcuffs:Settings",
+        "propertyName": "SettingsLocked"
+      }
+    },
+    {
+      "type": "hiddenSwitcher",
+      "groupControl": 2,
+      "valueOptions": 
+      {
+        "sourceType": "PropertyValueBool",
+        "sourceForm": "RealHandcuffs.esp|000F99",
+        "scriptName": "RealHandcuffs:Settings",
+        "propertyName": "SettingsUnlocked"
+      }
+    },
+    {
+      "groupCondition": 1,
+      "text": "<b>Hardcore Mode</b> is active.<br>Settings are currently not available.",
+      "type": "text",
+      "html": true
+    },
+    {
+      "groupCondition": 2,
+      "text": "General Settings",
+      "type": "section"
+    },
+    {
+      "groupCondition": 2,
+      "id": "bHardcoreMode:General",
+      "text": "Hardcore Mode",
+      "help": "Default: OFF",
+      "type": "switcher",
+      "valueOptions": {
+        "sourceType": "ModSettingBool"
+      }
+    },
+    {
+      "groupCondition": 2,
+      "text": "Hardcore Mode will make settings unavailable while the player is restrained.",
+      "type": "text"
+    },
+    {
+      "type": "spacer",
+      "numLines": 1
+    }
+  ],
+  "pages": [
+    {
+      "pageDisplayName": "Handcuffs Settings",
+      "content": [
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 1,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "propertyName": "SettingsLocked"
+          }
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 2,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "propertyName": "SettingsUnlocked"
+          }
+        },
+        {
+          "groupCondition": 1,
+          "text": "<b>Hardcore Mode</b> is active.<br>Settings are currently not available.",
+          "type": "text",
+          "html": true
+        },
+        {
+          "groupCondition": 2,
+          "text": "Click this line to restore handcuffs settings to defaults.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "function": "RestoreDefaultHandcuffsSettings",
+            "params": []
+          }
+        },
+        {
+          "groupCondition": 2,
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": 2,
+          "text": "Struggle Success Chances",
+          "type": "section"
+        },
+        {
+          "groupCondition": 2,
+          "id": "iStruggleChance:Handcuffs",
+          "text": "Slip Out of Quite Tight Handcuffs",
+          "help": "Default: 15",
+          "type": "slider",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "min": 1,
+            "max": 100,
+            "step": 1
+          }
+        },
+        {
+          "groupCondition": 2,
+          "id": "iReachItemChanceOnBack:Handcuffs",
+          "text": "Reach Inventory Item",
+          "help": "Default: 25",
+          "type": "slider",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "min": 1,
+            "max": 100,
+            "step": 1
+          }
+        },
+        {
+          "groupCondition": 2,
+          "id": "iUnlockChanceOnBack:Handcuffs",
+          "text": "Unlock Handcuffs (Key in Hand)",
+          "help": "Default: 35",
+          "type": "slider",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "min": 1,
+            "max": 100,
+            "step": 1
+          }
+        },
+        {
+          "groupCondition": 2,
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": 2,
+          "text": "Penalties",
+          "type": "section"
+        },
+        {
+          "groupCondition": 2,
+          "id": "iLockpickingPenaltyHandsOnBack:Handcuffs",
+          "text": "Lockpicking Penalty with Hands Bound Behind Back",
+          "help": "Default: Two Steps (for example, a Novice lock will require Expert skill)",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["One Step", "Two Steps", "Three Steps"]
+          }
+        },
+        {
+          "groupCondition": 2,
+          "id": "iHingedHandcuffsStrugglePenalty:Handcuffs",
+          "text": "Additional struggle penalty for hinged handcuffs",
+          "help": "Default: 33% (for example, a chance of 15% becomes a chance of 10%)",
+          "type": "slider",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "min": 0,
+            "max": 99,
+            "step": 1
+          }
+        },
+        {
+          "groupCondition": 2,
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": 2,
+          "text": "Pose",
+          "type": "section"
+        },
+        {
+          "groupCondition": 2,
+          "id": "iHandsOnBackPose:Handcuffs",
+          "text": "Pose Used for Hands Bound Behind Back",
+          "help": "Default: Real Handcuffs. Only affects newly bound characters.",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["Real Handcuffs", "Torture Devices"]
+          }
+        },
+        {
+          "groupCondition": 2,
+          "id": "bAutoAssignPrisonerMatUsers:Handcuffs",
+          "text": "Automatically Assign Prioner Mat Users to Workshop",
+          "help": "Default: ON",
+          "type": "switcher",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+	    }
+      ]
+    },
+    {
+      "pageDisplayName": "Shock Collar Settings",
+      "content": [
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 1,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "propertyName": "SettingsLocked"
+          }
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 2,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "propertyName": "SettingsUnlocked"
+          }
+        },
+        {
+          "groupCondition": 1,
+          "text": "<b>Hardcore Mode</b> is active.<br>Settings are currently not available.",
+          "type": "text",
+          "html": true
+        },
+        {
+          "groupCondition": 2,
+          "text": "Click this line to restore shock collar settings to defaults.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "function": "RestoreDefaultShockCollarSettings",
+            "params": []
+          }
+        },
+        {
+          "groupCondition": 2,
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": 2,
+          "text": "Shocks Settings",
+          "type": "section"
+        },
+        {
+          "groupCondition": 2,
+          "id": "iShockLethality:ShockCollars",
+          "text": "Excessive Shocks Can Kill",
+          "help": "Default: Yes",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["Yes", "Non-Essentials Only", "No"]
+          }
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 3,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:SoftDependencies",
+            "propertyName": "JBCompatibilityActive"
+          }
+        },        
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "text": "Just Business Integration",
+          "type": "section"
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "id": "bAddCollarsToJBSlaves:ShockCollars",
+          "text": "Automatically Add Shock Collars to New Slaves",
+          "help": "Default: ON",
+          "type": "switcher",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+	    },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "id": "fShockCollarJBSubmissionWeight:ShockCollars",
+          "text": "Shock Collar Submission Effect Weight",
+          "help": "Default: 1; 0 for no effect, 2 for double the default effect",
+          "type": "slider",
+          "valueOptions": {
+            "sourceType": "ModSettingFloat",
+            "min": 0.0,
+            "max": 3.0,
+            "step": 0.1
+          }
+	    },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "id": "iCastJBMarkSpellOnTaserVictims:ShockCollars",
+          "text": "Automatically Cast Mark Spell on Taser Victims",
+          "help": "Default: Only On Exhaustion",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["Yes", "Only On Exhaustion", "No"]
+          }
+        }
+      ]
+    },
+    {
+      "pageDisplayName": "Hotkey Settings",
+      "content": [
+        {
+          "text": "Player",
+          "type": "section"
+        },
+        {
+            "id": "RHInteractWithBondsFallback",
+            "text": "Interact with Bonds (Fallback)",
+            "type": "hotkey",
+            "help": "Fallback in case tab key does not work. Can be left unassigned if the tab key works.",
+            "valueOptions": {
+                "allowModifierKeys": true
+            }
+        },
+        {
+          "text": "NPCs",
+          "type": "section"
+        },
+        {
+            "id": "RHInteractWithNpc",
+            "text": "Interact with NPC",
+            "type": "hotkey",
+            "help": "Optional hotkey to trigger interactions with the NPC under the crosshair.",
+            "valueOptions": {
+                "allowModifierKeys": true
+            }
+        },        
+        {
+          "id": "bShowPoseAction:Hotkeys",
+          "text": "Show POSE Activation",
+          "help": "Disable and use hotkey for compatibility with activations from other mods (e.g. QuickTrade).",
+          "type": "switcher",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        }
+      ]
+    },    
+    {
+      "pageDisplayName": "Debug Settings",
+      "content": [
+        {
+          "id": "bShowDebugSettings:Debug",
+          "text": "Show Debug Settings",
+          "help": "Default: OFF",
+          "type": "switcher",
+          "groupControl": 3,
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "groupCondition": 3,
+          "text": "Click this line to restore debug settings to defaults.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "function": "RestoreDefaultDebugSettings",
+            "params": []
+          }
+        },
+        {
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 1,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "propertyName": "SettingsLocked"
+          }
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 2,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "propertyName": "SettingsUnlocked"
+          }
+        },
+        {
+          "groupCondition": { "AND": [1, 3] },
+          "text": "<b>Hardcore Mode</b> is active.<br>Only logging settings are available.",
+          "type": "text",
+          "html": true
+        },
+        {
+          "groupCondition": { "AND": [1, 3] },
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "text": "Master Switch",
+          "type": "section"
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "id": "bDisabled:Debug",
+          "text": "Disable RealHandcuffs",
+          "help": "Default: OFF",
+          "type": "switcher",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": 3,
+          "text": "Logging",
+          "type": "section"
+        },
+        {
+          "groupCondition": 3,
+          "id": "iLogLevelPapyrus:Debug",
+          "text": "Log level for papyrus log file",
+          "help": "Default: Warning",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["Information", "Warning", "Error", "(none)"]
+          }
+        },
+        {
+          "groupCondition": 3,
+          "id": "iLogLevelNotificationArea:Debug",
+          "text": "Log level for notification area",
+          "help": "Default: Warning",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["Information", "Warning", "Error", "(none)"]
+          }
+        },
+        {
+          "groupCondition": 3,
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "textFromStringProperty": {
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "PlayerName"
+          },      
+          "type": "section"
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "textFromStringProperty": {
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "PlayerWornRestraints"
+          },      
+          "help": "Click this line and close MCM to free the player.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "function": "FreePlayer",
+            "params": []
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "text": "Spawn and Equip Restraints",      
+          "help": "Click this line and close MCM to equip restraints on the player.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "function": "EquipPlayer",
+            "params": []
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 4,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "ShowTargetedNpc"
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 4] },
+            "textFromStringProperty": {
+                "form": "RealHandcuffs.esp|000F99",
+                "scriptName": "RealHandcuffs:McmInteraction",
+                "propertyName": "TargetedNpcName"
+            },      
+          "type": "section"
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 4] },
+          "textFromStringProperty": {
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "TargetedNpcWornRestraints"
+          },      
+          "help": "Click this line and close MCM to free the NPC.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "function": "FreeTargetedNpc",
+            "params": []
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 4] },
+          "text": "Spawn and Equip Restraints",      
+          "help": "Click this line and close MCM to equip restraints on the NPC.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "function": "EquipTargetedNpc",
+            "params": []
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 4] },
+          "textFromStringProperty": {
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "TargetedNpcCurrentPackage"
+          },      
+          "help": "Click this line and close MCM to reset the AI of the NPC.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "function": "ResetTargetedNpcAI",
+            "params": []
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 4] },
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 5,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "ShowTargetedObject"
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 5] },
+            "textFromStringProperty": {
+                "form": "RealHandcuffs.esp|000F99",
+                "scriptName": "RealHandcuffs:McmInteraction",
+                "propertyName": "TargetedObjectName"
+            },      
+          "type": "section"
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 5] },
+          "textFromStringProperty": {
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "TargetedObjectBase"
+          },      
+          "type": "text"
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 5] },
+          "textFromStringProperty": {
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "TargetedObjectMods"
+          },      
+          "type": "text"
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 5] },
+          "type": "spacer",
+          "numLines": 1
+        }
+     ]
+    }
+  ]
+}

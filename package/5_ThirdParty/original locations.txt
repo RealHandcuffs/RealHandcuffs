@@ -1,0 +1,4 @@
+This file contains the locations where the contents of the subfolders were downloaded from.
+
+LL FourPlay community F4SE plugin:
+  https://www.loverslab.com/files/file/4317-devtestbeta-ll-fourplay-community-f4se-plugin-v38-2019-12-05/

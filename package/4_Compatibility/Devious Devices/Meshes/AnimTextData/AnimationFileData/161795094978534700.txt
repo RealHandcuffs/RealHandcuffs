@@ -1,0 +1,11 @@
+3
+1
+161795094978534700
+7
+Actors\Character\Behaviors\MTBehavior.hkx
+Actors\Character\Behaviors\HitReactionBehavior.hkx
+Actors\Character\Behaviors\DialogueBehavior.hkx
+RealHandcuffs\MT\HandsCuffedBehindBackHinged\InjuredBothArmsBlend.hkx
+RealHandcuffs\MT\HandsCuffedBehindBackHinged\MTBothArmsInjured.hkx
+Torture Devices\wearables\Generic\BoundFeet\BoundFeetSolid\WalkForward.hkx
+Torture Devices\wearables\Generic\BoundFeet\BoundFeetSolid\PoseA_Idle1.hkx

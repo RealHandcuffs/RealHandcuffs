@@ -1,0 +1,33 @@
+The preferred way to integrate RealHandcuffs into other mods is by using the ThirdPartyApi script. This script is
+written such that it can be used as a soft dependency. To get the instance of the script, do something like the
+following:
+
+
+;
+; Get the RealHandcuffs third party api.
+;
+ScriptObject Function GetRealHandcuffsThirdPartyApi(Int requiredApiVersion)
+    Quest rhMainQuest = Game.GetFormFromFile(0x000f99, "RealHandcuffs.esp") as Quest
+    If (rhMainQuest == None)
+        ; RealHandcuffs is not installed
+        Return None
+    EndIf
+    ScriptObject thirdPartyApi = rhMainQuest.CastAs("RealHandcuffs:ThirdPartyApi")
+    If (thirdPartyApi == None || thirdPartyApi.CallFunction("ApiVersion", new Var[0]) < requiredApiVersion)
+        ; RealHandcuffs is installed but the version is too old
+        Return None
+    EndIf
+    Return thirdPartyApi
+EndFunction
+
+
+You can cache the returned script object, but you should throw it away and get a new one when the player loads a save
+game (use the player.OnPlayerLoadGame() event to react on the player loading a save game). Use CallFunction to use the
+functionality of the script object, for example:
+
+
+; put the player into hinged high security handcuffs
+Var[] kArgs = new Var[2]
+kArgs[0] = Game.GetPlayer()
+kArgs[1] = 24 ; FlagHinged (8) + FlagHighSecurity (16)
+thirdPartyApi.CallFunction("CreateHandcuffsEquipOnActor", kArgs)

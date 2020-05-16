@@ -1,0 +1,8 @@
+<meta title="RealHandcuffs_protectedEquipmentData.xml" version="1.0" dataSet="protectedEquipment"/>
+<defaults />
+
+<condition>
+	<protectKeyword form="000963" source="RealHandcuffs.esp"/>
+	<protectKeyword form="000964" source="RealHandcuffs.esp"/>
+	<protectKeyword form="000965" source="RealHandcuffs.esp"/>
+</condition>

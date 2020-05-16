@@ -1,0 +1,363 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+  <moduleName>Real Handcuffs</moduleName>
+  <requiredInstallFiles>
+    <folder source="0_Common" destination=""/>
+  </requiredInstallFiles>
+  <installSteps order="Explicit">
+    <installStep name="Select Edition to Install">
+      <optionalFileGroups order="Explicit">
+        <group name="Edition" type="SelectExactlyOne">
+          <plugins order="Explicit">
+            <plugin name="Standard">
+              <description><![CDATA[<h4>Real Handcuffs Standard Edition</h4><p>Automatically convert all handcuffs in the Commonwealth to wearable handcuffs. This is the recommended option.</p>]]></description>
+              <conditionFlags>
+                <flag name="edition">standard</flag>
+                <flag name="install_llfp">off</flag>
+                <flag name="compatibility_dd">off</flag>
+                <flag name="compatibility_jb">off</flag>
+                <flag name="compatibility_servitron">off</flag>
+                <flag name="compatibility_awkcr">off</flag>
+                <flag name="compatibility_ss_cq">off</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Recommended"/>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Lite">
+              <description><![CDATA[<h4>Real Handcuffs Lite Edition</h4><p>Do not convert handcuffs automatically. You can select how to convert handcuffs on the next page. Choose this if you only need Real Handcuffs as a dependency for something else.</p>]]></description>
+              <conditionFlags>
+                <flag name="edition">lite</flag>
+                <flag name="convert_chemistry">off</flag>
+                <flag name="convert_awkcr">off</flag>
+                <flag name="convert_deviousdevices">off</flag>
+                <flag name="install_llfp">off</flag>
+                <flag name="compatibility_dd">off</flag>
+                <flag name="compatibility_jb">off</flag>
+                <flag name="compatibility_servitron">off</flag>
+                <flag name="compatibility_awkcr">off</flag>
+                <flag name="compatibility_ss_cq">off</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Optional"/>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
+    <installStep name="Select How to Convert Handcuffs">
+      <visible operator="And">
+        <flagDependency flag="edition" value="lite"/>        
+      </visible>
+      <optionalFileGroups order="Explicit">
+        <group name="Convert Handcuffs Using" type="SelectAny">
+          <plugins order="Explicit">
+            <plugin name="Chemistry Station">
+              <description><![CDATA[<p>Convert handcuffs at the Chemistry Station, under the "Utility" category.</p>]]></description>
+              <conditionFlags>
+                <flag name="convert_chemistry">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Optional"/>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Armorsmith Workbench (AWKCR)">
+              <description><![CDATA[<p>Convert handcuffs at the Armorsmith Workbench, under the "Hands - Accessories" category. Requires <i>Armor and Weapon Keywords Community Resource (AWKCR)</i>.</p>]]></description>
+              <conditionFlags>
+                <flag name="convert_awkcr">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Optional"/>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Restraints Workbench (Devious Devices)">
+              <description><![CDATA[<p>Convert handcuffs at the Restraints Workbench, under the "Gloves & Wristcuffs" category. Requires <i>Devious Devices</i>.</p>]]></description>
+              <conditionFlags>
+                <flag name="convert_deviousdevices">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Optional"/>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
+    <installStep name="Select Dependencies to Install">
+      <optionalFileGroups order="Explicit">
+        <group name="Dependency" type="SelectAny">
+          <plugins order="Explicit">
+            <plugin name="LLFP Plugin v38">
+              <description><![CDATA[<h4>LL FourPlay Community F4SE Plugin v38</h4><p>Real Handcuffs requires the LLFP F4SE plugin, v28 or later. Select this option to install LLFP F4SE plugin v38 (for runtime 1.10.163). You can skip this step if you have the latest AAF version. Also skip this step if you want to manually control the version of the LLFP F4SE plugin, for example if have an older Fallout 4 runtime.</p>]]></description>
+              <conditionFlags>
+                <flag name="install_llfp">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Recommended"/>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
+    <installStep name="Compatibility with Other Mods">
+      <optionalFileGroups order="Explicit">
+        <group name="Plugins" type="SelectAny">
+          <plugins order="Explicit">
+            <plugin name="AWKCR">
+              <description><![CDATA[<h4>Armor and Weapon Keywords Community Resource (AWKCR)</h4><p>Install a patch to add crafting recipies to the AWKCR armor workbench and generally improve compatibility with AWKCR.</p><p>This patch merges some leveled lists that are modified by both Real Handcuffs and AWKCR. It is for AWKCR version 8.6.</p>]]></description>
+              <conditionFlags>
+                <flag name="compatibility_awkcr">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <fileDependency file="ArmorKeywords.esm" state="Active"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Devious Devices">
+              <description><![CDATA[<h4>Devious Devices</h4><p>Install a patch to improve compatibility with Devious Devices.</p><p>This patch does not make any change to Devious Devices, so it should work with any version.</p>]]></description>
+              <conditionFlags>
+                <flag name="compatibility_dd">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <fileDependency file="Devious Devices.esm" state="Active"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Just Business">
+              <description><![CDATA[<h4>Just Business</h4><p>Install a patch to improve compatibility with Just Business.</p><p>This patch modifies several records in <i>Just Business.esp</i>. It is for Just Business version 0.7.5.</p>]]></description>
+              <conditionFlags>
+                <flag name="compatibility_jb">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <fileDependency file="Just Business.esp" state="Active"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Servitron">
+              <description><![CDATA[<h4>Servitron</h4><p>Install a patch to improve compatibility with Servitron.</p><p>This patch does not make any change to Servitron, so it should work with any version.</p>]]></description>
+              <conditionFlags>
+                <flag name="compatibility_servitron">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <fileDependency file="Servitron.esm" state="Active"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Sim Settlements - Conqueror">
+              <description><![CDATA[<h4>Sim Settlements - Conqueror</h4><p>Install a patch to improve compatibility with Sim Settlements - Conqueror. <p>This patch modifies several records in <i>SimSettlements_XPAC_Conqueror.esp</i>. It is for Sim Settlements version 4.2.5.</p>]]></description>
+              <conditionFlags>
+                <flag name="compatibility_ss_cq">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <fileDependency file="SimSettlements_XPAC_Conqueror.esp" state="Active"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
+  </installSteps>
+  <conditionalFileInstalls>
+    <patterns>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="standard"/>
+        </dependencies>
+        <files>
+          <folder source="1_Standard" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+        </dependencies>
+        <files>
+          <folder source="2_Lite" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+          <flagDependency flag="convert_chemistry" value="on"/>
+          <flagDependency flag="convert_awkcr" value="off"/>
+          <flagDependency flag="convert_deviousdevices" value="off"/>
+        </dependencies>
+        <files>
+          <file source="3_Convert/RealHandcuffs_Convert_CS.esp" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+          <flagDependency flag="convert_chemistry" value="off"/>
+          <flagDependency flag="convert_awkcr" value="on"/>
+          <flagDependency flag="convert_deviousdevices" value="off"/>
+        </dependencies>
+        <files>
+          <file source="3_Convert/RealHandcuffs_Convert_AWKCR.esp" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+          <flagDependency flag="convert_chemistry" value="off"/>
+          <flagDependency flag="convert_awkcr" value="off"/>
+          <flagDependency flag="convert_deviousdevices" value="on"/>
+        </dependencies>
+        <files>
+          <file source="3_Convert/RealHandcuffs_Convert_DD.esp" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+          <flagDependency flag="convert_chemistry" value="on"/>
+          <flagDependency flag="convert_awkcr" value="on"/>
+          <flagDependency flag="convert_deviousdevices" value="off"/>
+        </dependencies>
+        <files>
+          <file source="3_Convert/RealHandcuffs_Convert_CS_AWKCR.esp" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+          <flagDependency flag="convert_chemistry" value="on"/>
+          <flagDependency flag="convert_awkcr" value="off"/>
+          <flagDependency flag="convert_deviousdevices" value="on"/>
+        </dependencies>
+        <files>
+          <file source="3_Convert/RealHandcuffs_Convert_CS_DD.esp" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+          <flagDependency flag="convert_chemistry" value="off"/>
+          <flagDependency flag="convert_awkcr" value="on"/>
+          <flagDependency flag="convert_deviousdevices" value="on"/>
+        </dependencies>
+        <files>
+          <file source="3_Convert/RealHandcuffs_Convert_AWKCR_DD.esp" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="edition" value="lite"/>
+          <flagDependency flag="convert_chemistry" value="on"/>
+          <flagDependency flag="convert_awkcr" value="on"/>
+          <flagDependency flag="convert_deviousdevices" value="on"/>
+        </dependencies>
+        <files>
+          <file source="3_Convert/RealHandcuffs_Convert_CS_AWKCR_DD.esp" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_awkcr" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/AWKCR" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_dd" value="on"/>
+          <flagDependency flag="compatibility_servitron" value="off"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Devious Devices" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_jb" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Just Business" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_dd" value="off"/>
+          <flagDependency flag="compatibility_servitron" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Servitron" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_dd" value="on"/>
+          <flagDependency flag="compatibility_servitron" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Devious Devices Servitron" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_ss_cq" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Sim Settlements Conqueror" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="install_llfp" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="5_ThirdParty/LL FourPlay community F4SE plugin" destination=""/>
+        </files>
+      </pattern>
+    </patterns>
+  </conditionalFileInstalls>
+</config> 

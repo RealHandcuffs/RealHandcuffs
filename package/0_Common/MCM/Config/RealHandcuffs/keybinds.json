@@ -1,0 +1,25 @@
+{
+  "modName": "RealHandcuffs",
+  "keybinds": [
+    {
+      "id": "RHInteractWithBondsFallback",
+      "desc": "Interact with Bonds (Fallback)",
+      "action": {
+        "type": "CallFunction",
+        "form": "RealHandcuffs.esp|000019",
+        "function": "InteractWithBondsFallback",
+        "params": []
+      }
+    },
+    {
+      "id": "RHInteractWithNpc",
+      "desc": "Interact with NPC",
+      "action": {
+        "type": "CallFunction",
+        "form": "RealHandcuffs.esp|000019",
+        "function": "InteractWithNpc",
+        "params": []
+      }
+    }
+  ]
+}

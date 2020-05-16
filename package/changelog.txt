@@ -1,0 +1,439 @@
+Version 0.1 Pre-Beta 1
+======================
+first packed version for internal beta testing, features:
+- restraints: Handcuffs
+- mods: High Security Lock, boosts lock from Novice to Expert
+- hands bound on back with wrists parallel
+- player: unable to fight, use pipboy, take items, open containers
+- player: able to take keys/bobby pins and hold one at a time
+- player: able to fetch keys/bobby pins from inventory
+- player: able to pick locks with 50 pt difficulty penalty
+- player: able to struggle out of handcuffs unless very tight
+- player: able to pick handcuff locks with 50 pt difficulty penalty
+- npc: unable to fight, draw weapon
+- npc: player can pick handcuff locks
+- player & npcs: swimming debuff and drowning sounds
+
+Version 0.1 Beta 1
+==================
+first version for public beta testing, changes:
+- prevent bound player from disarming mines and traps
+- always gift handcuffs key to player on initial installation to playthrough in progress (sanctuary workshop is player-owned)
+- show notification messages on installing and updating unless info logging to notification area is turned on
+- fix reset to default inventory bug by removing suspend-on-unload/restore-on-load mechanism
+- improve cleanup of npc tokens and restrained npcs refalias, including second chance on game load
+- make sure keys can actually be bought and sold
+- implement workaround to reapply packages to npcs if another mod has max priority, too (e.g. just business)
+- add keyword to allow other mod authors to disable AI packages on a npc and replace them with their own
+
+Version 0.1 Beta 2
+==================
+small fixes and api improvements
+- merge keywords used to activate things with bound hands
+- force-quit workshop mode if player activates workshop mode with bound hands
+- internal refactoring of lockpicking interactions; some messages had to change to accommodate the new logic
+- prevent player from picking pockets with bound hands
+
+Version 0.1 Beta 3
+==================
+fixes
+- prevent npc's from executing commands that they should not be able to with bound hands
+
+Version 0.1 Beta 4
+==================
+support standard edition and lite edition
+- add property for edition ("Standard", "Lite")
+- add setting whether handcuffs should be converted automatically, true for Standard, false for Lite
+- remove LegacyHandcuffs script from Lite Edition script folders
+- remove leveled item changes from Lite Edition esp
+- create esl-flagged esp's with manual conversion recipes for Lite Edition
+- overhaul fomod installer to present options and install according to selection
+
+Version 0.1 Beta 5
+==================
+better compatibility with devious devices
+- add optional plugin for devious devices compatibility including installer option
+- create additional human race subgraph data in dd compatibility plugin combining handcuffs with dd legcuffs
+
+Version 0.1 RC 1
+================
+bugfixing
+- fix bug preventing activation of workshop mode after player unequipped handcuffs
+- add checks to effect scripts to ignore events when handcuffs are not equipped, may prevent similar bugs in the future
+- installation script will now do a forced reapply of all effects on upgrade
+
+Version 0.1 RC 1
+================
+same as 0.1 RC1
+
+Version 0.2 Beta 1
+==================
+first version with MCM, plus installer improvements
+- improve FOMOD installer
+- improve papyrus installer/maintenance script
+- add MCM menu with three sections: general, handcuffs, debug
+- modify papyrus code to support MCM menu
+- remove ObservePlayerCrosshair perk and use LLFP Plugin instead
+
+Version 0.2 Beta 2
+==================
+small tweaks
+- add some more entries to 'interact while bound' furniture list, including some dlc workshop items
+- slightly tweak camera handling (some actions require third-person camera)
+
+Version 0.2 Beta 3
+==================
+new animations
+- add new 'hands cuffed behind back' pose that does not depend on Torture Devices plus required armor addon for handcuffs
+- add MCM setting to choose between old 'Torture Devices' pose and new 'Real Handcuffs' pose
+- replace Torture Devices struggle animation with a new struggle animation
+
+Version 0.2 Beta 4
+==================
+hinged handcuffs
+- add  hinged handcuffs (this required some refactoring), complete with animation, interaction and settings
+- allow conversion of regular handcuffs to hinged handcuffs at at armor workbench
+- change equipment slot of handcuffs from 37/38 to 54, in order to reduce conflicts with vanilla items
+
+Version 0.2 Beta 5
+==================
+small tweaks
+- tweak 'hands cuffed behind back' pose
+- change equipment slot of handcuffs back to 37/38 if installing the optional devious devices compatibility plugin
+
+Version 0.2 RC 1
+================
+papyrus fixes and improvements
+- small papyrus fixes and improvements, should eliminate many papyrus warnings and might fix a few random issues
+
+Version 0.2 RC 2
+================
+more fixes
+- some more small papyrus fixes and improvements, e.g. to clean up in unexpected situations
+- try to improve handling of key/mouse/controller bindings
+
+Version 0.2 RC 3
+================
+fix mod misbehavior when enabled on game start
+- fix misbehavior of the mod when it is present when starting a new game
+- improve cleanup/fallback code, should now work much more reliable
+- fix a small weird papyrus errors
+
+Version 0.2
+===========
+fix cleanup
+- fix a bug causing dead tokens to accumulate in npc inventories
+
+Version 0.3 Beta 1
+==================
+time-locked handcuffs
+- refactor the way that armor mods for handcuffs are handled internally to make it more generic
+- implement time-locked handcuffs (fixed versions for 3, 6 and 12 hours, and a version with a dial)
+- update LL FourPlay plugin to v31 (for runtime v1.10.130)
+- change implementation of standard and lite edition, difference is now in esp only
+
+Version 0.3 Beta 2
+==================
+npc ai improvements
+- allow bound settlers to move between settlements (workshop mode "Move" command)
+- add optional plugin for improved just business compatibility including installer option
+- pre-select optional compatibility plugins in fomod installer if their dependency is present
+
+Version 0.3 Beta 3
+==================
+broken handcuffs
+- implement broken handcuffs (locked bracelets) including struggle animation
+- allow bound player to cut worn handcuffs at owned workbench (work in progress)
+- fix bug causing followers to lose "bound hands" animations in some situations
+- change travel ai package, will no longer run the whole distance
+- various small fixes and improvements
+
+Version 0.3 Beta 4
+==================
+ugly workaround for stuck draw weapon animations
+- implement a ugly workaround for stuck "draw weapon" animations, will force NPC into bleedout
+- if Knockout Framework is installed and enabled for the NPC, it will be used instead as it would interfere with bleedout
+
+Version 0.3 Beta 5
+==================
+various improvements
+- add a ThirdPartyHelpers script on RH_MainQuest (0x000F99) for other mods that want to use RealHandcuffs as a (soft) dependency
+- improve "bleedout" workaround for stuck "draw weapon" animations, it should no longer trigger when knocked down actors are getting up
+- improve compatibility plugin for devious devices, the handcuffs are now tagged such that devious devices can recognize that wristcuffs are equipped
+- add compatibility plug-in for Servitron - this is a proof-of-concept plugin, showing how to make compatibility plugins for custom races
+
+Version 0.3 Beta 6
+==================
+change handling of bound companions/teammates in combat
+- only remove SetCanDoCommand flag from NPCs instead of removing IsPlayerTeammate flag when combat starts
+- remove the flag when combat starts for either player or bound NPC; restore the flag when combat ends for both
+- rename ThirdPartyHelpers script to ThirdPartyApi and make it a versioned API
+
+Version 0.3 Beta 7
+==================
+prevent popups (e.g. from pressing tab) in unexpected situations
+- prevent hotkeys from triggering when the player is in dialogue with a NPC
+- prevent hotkeys from triggering when the player is in a AAF animation
+- add compatibility keyword to prevent player (not character, the human playing the game) from equipping/unequipping restraints
+
+Version 0.3 RC 1
+==================
+overhaul spawning of handcuffs
+- use leveled list injection to spawn handcuffs to reduce conflicts, only source of conflicts should now be removal of legacy handcuffs
+- increase variability of spawned handcuffs: 20% will be hinged, 20% (of either) will be high security
+- increase amount of spawned keys: 80% of all handcuffs will spawn with keys. note that handcuffs and keys are still two items in vendor inventory
+- add compatibility plugin for AWKCR, solves some minor conflicts in leveled lists
+- update LL FourPlay plugin to v32 (for runtime v1.10.130)
+
+Version 0.3 RC 2
+================
+small improvements
+- improve behavior when commanding bound followers to wait, they will now stay even when the player fast travels or uses a elevator
+- change signature of ThirdPartyApi.GetEquippedRestraints(Actor) to make it work with Utility.VarToVarArray
+- add new function to ThirdPartyApi for equipping handcuffs with non-default settings (tightness, lock facing away from hands)
+
+Version 0.3 RC 3
+================
+overhaul third party api
+- overhaul ThirdPartyApi, most functions are renamed and take an additional 'Int flags' argument (old functions are still working but obsolete)
+- show remaining time of time-locked handcuffs in MCM Debug page
+
+Version 0.3
+===========
+optimizations
+- build scripts from console using optimized release settings
+- optimization: always check if info logging is enabled before doing info log string concatenation to improve performance
+- small improvement to servitron compatibility plugins
+
+Version 0.3.1
+=============
+maintenance release
+- update LL FourPlay plugin to v34 (fixes a crash bug)
+- improve how Just Business compatibility plugin handles prostitutes
+- add support for slave convoy added in Just Business 0.7.5
+
+Version 0.3.2
+=============
+various improvements
+- improve error detection and error correction code (internal mini-reset)
+- change behavior of bound workers (settlers, ...), they will try to go to their work location now and wait there
+- slightly tweak bound hands follow/travel packages
+- fix wrong handcuffs 3d model being used on player after switching pose in MCM settings (it worked for NPCs)
+
+Version 0.3.3
+=============
+minor fix
+- fix handling of furniture marked as usuable with bound hands by third-party mods
+
+Version 0.4.0 alpha 1
+=====================
+first implementation of shock collars
+- new restraint: RobCo Shock Collar Mark II
+- mods: Standard Shock Module, Throbbing Shock Module
+- new weapon: Shock Collar Remote Trigger (assets used with the kind permission of fadingsignal, including some animations by Hitman47101)
+
+Version 0.4.0 alpha 2
+=====================
+tweaks after first independent testing
+- reimplement handling of temporary shock damage
+- allow NPCs to switch from remote trigger to a different weapon in combat
+- some very small fixes
+
+Version 0.4.0 beta 1
+====================
+continue on the way to beta
+- move most loose files into .ba2 archive (ATTENTION, MAKE SURE TO DELETE OLD LOOSE FILES!)
+- add MCM page with setting for non-lethal shocks
+- new mods for shock collars: explosive module, robco mark III firmware
+- add full support for shock collars to third party api
+- various improvements, fixes and refactorings
+
+Version 0.4.0 beta 2
+====================
+compatibility improvements and fixes
+- completely redo the bleedout effect, it was causing issues with other mods (e.g. knockout framework)
+- allow shock collars to cause unconsciousness if the victim is near death or if killing victims is disabled in MCM
+- add better recognition of just business cloning process, it should now always correctly transfer restraints
+- make just business spawn the new shock collars instead of the vanilla ones (also added a mcm setting to disable spawning collars)
+- various bug fixes, especially for situations with heavy script load
+
+Version 0.4.0 beta 3
+====================
+various improvements for shock collars and explosive ones
+- be more persistent when trying to connect the pip boy to a shock collar
+- allow triggering of explosive collars even after their wearer has died
+- allow booby-trapping corpses with explosive collars (also add ThirdPartyApi function for booby-trapping corpses)
+- new mod for remote trigger: powerful transmitter (much longer range)
+- remove perk requirements for some mods to make them more accessible for players
+
+Version 0.4.0 beta 4
+====================
+npc handling improvements
+- handle active command mode and dialogue menu when trying to connect the pip boy to a shock collar
+- make sure that npcs who get cuffed while they are in combat (especially player teammates) put away their weapon
+- add option to MCM for resetting AI of currently targeted NPC, this might help to "unstuck" npcs
+
+Version 0.4.0 beta 5
+====================
+add crafting recipes (requires awkcr and awkcr compatibility plugin), plus some smaller changes
+- add recipes for crafting handcuffs and handcuffs keys to awkcr armor workbench (category: Hands - Accessories)
+- add recipes for crafting shock collars and firmware dumps to awkcr armor workbench (category: Accessories - Necklaces)
+  you need to have a shock collar in your inventory to create a firmware dump! if you have no shock collar, the recipe will not show up
+- remove knockout effect from shocked NPCs because it looks bad with handcuffs and with furniture, just keep them in bleedout instead
+- remove smoke vfx from shock effect
+
+Version 0.4.0 beta 6
+====================
+hacked firmware and lots of small changes
+- new mod: hacked firmware, uses some 1337 in menus and has a "T0rture M0de" giving recurring timed shocks
+- add crafting recipes to chemistry workbench (only for users who are not using the awkcr compatibility plugin)
+- try to use tab key as hardcoded default if for some reason not able to detect the key bound to "Pipboy" action
+- a lot of small changes, fixes and (script) improvements
+
+Version 0.4.0 rc 1
+==================
+final touches before release
+- make sure collar explosions are placed correctly at the neck, even if actors are not standing
+- fix explosive collars sometimes not working after wearer died or when booby-trapping corpses
+- add taser syringes at chemistry workbench (ammo for syringer, deals shocks similar to collars)
+- add Just Business integration for taser syringes (option in MCM to automatically mark the victim)
+- reduce hacking level requirements for firmware recipes
+- terminate unwanted scenes when NPCs are bound and/or when shock collars are triggered
+- improvements to ThirdPartyApi: better handling of shock collar remote triggers, specialized functions for restraints with specific effects
+
+Version 0.4.0
+=============
+small tweaks for final 0.4 version
+- improve just business integration of taser syringes, will now work more reliably with actors who are already in bleedout
+- improve suppression of unwanted scenes for bound actors
+- improve transition between wait and follow commands with bound hands
+- fix Just Business compatibility setting "automatically add shock collars to new slaves" (logic was the wrong way around)
+- update LL FourPlay plugin to v35
+
+Version 0.4.1
+=============
+maintenance release
+- update LL FourPlay plugin to v37
+- fix crafting requirements of high security handcuffs key (was locksmith 3, should be locksmith 2)
+- add AAF support file provided by EgoBallistic (thanks!)
+
+Version 0.4.2 beta 1
+====================
+improve support for bound players
+- allow searching containers with bound hands and taking some items (same restrictions apply as when picking up loose items)
+- allow unlocking containers with bound hands, similar to unlocking doors
+- allow eating food items that are standing in the open with bound hands
+- allow drinking from open sources of water (lakes, rivers, ...) with bound hands
+- handle armor racks as containers, not as NPCs
+- allow booby-trapping armor racks with explosive collars, similar to corpses
+- update LL FourPlay plugin to v38
+
+Version 0.4.2 beta 2
+====================
+various improvements for bound/collared NPCs
+- fix a situation where bound NPCs would free themselves
+- improve behavior when using command mode on bound NPCs, there were some (hard to reproduce) bugs
+- bound npcs will now follow other npcs if told to inspect them (they will follow until a different command is given, even if command mode ends)
+- bound npcs will now try to stay in the exactly same place when told to wait; if pushed away, they should return
+- make ticking time of explosive collars consistent with other collars (it was longer previously)
+- Just Business Integration: Triggering shock collars will now improve a slave's submission value (there is a MCM setting to scale or disable the effect)
+
+Version 0.4.2 beta 3
+====================
+bound NPC follow tweaks
+- fix: if a bound NPC is following another NPC (bound or not) who is in turn following the player, try to keep up when the player fast-travels
+- tweak bound hands packages for smoother following
+
+Version 0.4.2
+=============
+final touches for 0.4.2
+- fix: terminate "bound NPC follow another NPC" packages if the followed NPC dies
+- add hotkey as fallback in case tab does not work when player is bound
+
+Version 0.4.3 beta 1
+====================
+add prisoner mat, various improvements
+- add prisoner mat to workshop (under Raider -> Misc), a "workshop furniture" that keeps a single NPC as a handcuffed prisoner
+- add taser mod for security baton
+- varions small fixes and improvements
+- update AWKCR compatibility plugin for AWKCR 8.6
+
+Version 0.4.3
+=============
+small tweakes
+- tweak packages and scripts for prisoner mat
+
+Version 0.4.4 beta 1
+====================
+various small new features and fixes
+- add option to randomize access code in shock collar terminal
+- try to make NPCs react a bit stronger to being shocked (only works with generic voice types for now)
+- allow choosing poses for bound NPCs who are waiting or assigned to prisoner mats (only a kneeling pose is available for now)
+- improve Devious Devices compatibility by adding DD_kw_RenderedItem keyword to restraints in DD compatibility plugin
+- fix spawning of shock collars by Just Business compatibility plugin if lite version is installed
+- add compatibility plugin for "Sim Settlements - Conqueror" (only a few AI package tweaks for now)
+- make BoundHandsGenericFurnitureList and BoundHandsTakeItemList form lists available in ThirdPartyApi
+- refactor the way how "bound hands" animation keywords are processed to allow adding new keywords from other mods
+- add 0x0D9C37 NpcPrisonerFloorSit to BoundHandsGenericFurnitureList for increased compatibility with other mods
+
+Version 0.4.4 beta 2
+====================
+tweaks to existing functionality
+- various reliability improvements and cosmetic improvements for prisoner mats and poses
+- add a second kneeling pose for prisoner mats (less submissive, more like a hostage)
+- make the "submissive" kneeling pose the default pose for prisoner mats
+- move hotkeys into separate MCM page
+- add a new hotkey for triggering interactions with NPCs (at the moment only changing pose)
+- add a MCM setting to disable the POSE activation, for compatibility with other mods (e.g. QuickTrade)
+- JB integration: add a small amount of bonus submission when a shock sends a slave into bleedout
+- SS CQ integration: further improve compatibility with personal squad, there are still some minor issues though
+
+Version 0.4.4 beta 3
+====================
+squashing bugs
+- fix various animation problems with followers using prisoner mats (i.e. while not assigned to a workshop)
+- fix followers on prisoner mats not leaving the prisoner mat when told to follow again
+- fix prisoners (especially those assigned to a workshop) moving around when player fast travels, sleeps or waits
+- fix visual bug: temporary handcuffs staying on wrists when releasing actors from prisoner mat
+- fix race condition leading to error messages about "orphaned token"
+- make debug menu option "reset NPC AI" revert special states of bound NPCs (e.g. wait, use prisoner mat)
+- try to restore current pose of waiting NPCs when upgrading to a new version of the mod
+
+Version 0.4.4 beta 4
+====================
+fix more problems
+- translate npcs when kneeling down on prisoner mats to force them to face the correct direction
+- slightly repositon kneeling prisoners such that their knees are on the prisoner mat
+- allow interactive posing of workshop npcs who are assigned to prisoner mat but somehow fail to get on the mat
+- various animation fixes to reduce twitching or sudden changes of pose
+- fix registration for input events when starting new game or when installing mod for the first time
+
+Version 0.4.4 rc 1
+==================
+support for other mods
+- try harder to prevent the game and other mods (e.g. Better Companions) from teleporting NPCs in "bound wait" state
+- try to fix some situations where the AI did not switch to the correct package, or not switch fast enough
+- add new ThirdPartyApi functions to make bound NPCs follow other actors: SetBoundHandsFollowTarget, ClearBoundHandsFollowTarget
+- add new ThirdPartyApi functions to make bound NPCs wait, optionally with a pose: StartBoundWaitState, ChangeBoundWaitStatePose, StopBoundWaitState
+
+Version 0.4.4
+=============
+final 0.4.4 release, almost identical to 0.4.4 rc 1
+- fix an edge case when following the player with bound hands and the player goes through a loading screen
+
+Version 0.4.5
+=============
+small quality of life improvements
+- when a NPC (follower, JB slave, ...) is commanded to use a prisoner mat, they are automatically assigned to the workshop
+- add a new MCM setting to disable the above behaviour ("Automatically Assign Prioner Mat Users to Workshop")
+- add recipe for crafting high security handcuffs in one step, instead of crafting regular handcuffs and then upgrading the lock
+- add recipe for crafting hacked shock collars in one step, instead of crafting mark ii/iii collars and then replacing the firmware
+- add option in MCM debug menu to equip restraints on player or on  NPC under crosshair, for easier testing of new features (somewhat experimental)
+
+Version 0.4.6
+=============
+TODO
+- remote trigger will now work on collars of NukaWorld traders/captives (repeated shocks can kill, be careful not to kill the traders!)
+- they should also work on vanilla collars added by any other mod, as long as the mod is using the NukaWorld armor object
+- NPCs will now start exiting furniture as soon as their shock collar starts beeping
+- DD compatibility plugin: remove neck slots usage from  institure leg cuffs (bug in DD causing compatibility issues with shock collar)

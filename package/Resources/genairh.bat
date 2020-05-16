@@ -1,0 +1,1 @@
+CreationKit.exe -GenerateAnimInfo:RealHandcuffs.esp .Data .\Data --speed --stance
