@@ -13,22 +13,23 @@ function clean_up {
   cd "$ORIGINAL_DIR"
 }
 trap clean_up EXIT
+set -e
 
 # check arguments
 GENERATE=0
-for VAR in "$@"
+for var in "$@"
 do
-  case "$VAR" in
+  case "$var" in
     "-g" )
       GENERATE=1;;
     "--generate" )
       GENERATE=1;;
     * )
-      if [[ "$VAR" != "-h" && "$VAR" != "--help" ]]
+      if [[ "$var" != "-h" && "$var" != "--help" ]]
       then
-        echo "Invalid argument: $VAR"
+        echo "Invalid argument: $var"
       fi
-      echo "Usage: $(basename "$0") [-g]"
+      echo "Usage: $(basename "$0") [-g|--generate]"
       exit -1;;
   esac
 done
@@ -50,7 +51,7 @@ then
     [[ $GENERATE == 0 ]] && echo "  Resolved to: $TOOL_7ZIP"
   fi
 else
-  REGISTRY=$(reg query "HKLM\SOFTWARE\7-Zip") || { >&2 echo "ERROR: Unable to find 7zip registry key."; exit 1; }
+  REGISTRY=$(reg query "HKLM\SOFTWARE\7-Zip") || { >&2 echo "ERROR: Unable to find 7-Zip registry key."; exit 1; }
   PATH_7ZIP=$(echo "$REGISTRY" | sed -rn "s/\s*Path64\s+REG_SZ\s+(.*)/\1/p" | sed 's/\\/\//g' | sed 's/://')
   PATH_7ZIP="/${PATH_7ZIP%/}"
   if [[ -f "$PATH_7ZIP/7z.exe" ]]
@@ -79,7 +80,7 @@ then
   fi
 else
   REGISTRY=$(reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 377160") || { >&2 echo "ERROR: Unable to find Fallout 4 registry key."; exit 2; }
-  PATH_FALLOUT4=$(echo "$REGISTRY" | sed -rn "s/\s*InstallLocation\s+REG_SZ\s+(.*)/\1/p" | sed 's/\\/\//g' | sed 's/://')
+  PATH_FALLOUT4=$(echo "$REGISTRY" | sed -rn "s/\s*InstallLocation\s+REG_SZ\s+(.*)/\1/p" | sed -e 's/\\/\//g' -e 's/://')
   PATH_FALLOUT4="/${PATH_FALLOUT4%/}"
   if [[ -d "$PATH_FALLOUT4" ]]
   then
