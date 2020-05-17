@@ -86,13 +86,13 @@ function pack_assets() {
   then
     "$DIR_FALLOUT4CREATIONKIT/Tools/Archive2/Archive2.exe" -create="$2" -sourceFile="$BASE_DIR/build/assets.txt" -root="$ROOT" -format="General" -compression="None" -quiet -cleanup
     xargs -a "$BASE_DIR/build/assets.txt" -d '\n' rm
+    find . -type d -empty -delete
+    if [[ "$QUIET" == "" ]]
+    then
+      echo "  $2 ($(stat --printf="%s" "$2") bytes)"
+    fi
   fi
-  find . -type d -empty -delete
   rm "$BASE_DIR/build/assets.txt"
-  if [[ "$QUIET" == "" ]]
-  then
-     echo "  Created: $2"
-  fi
   cd "$BASE_DIR"
 }
 
@@ -115,18 +115,18 @@ function pack_textures() {
   then
     "$DIR_FALLOUT4CREATIONKIT/Tools/Archive2/Archive2.exe" -create="$2" -sourceFile="$BASE_DIR/build/textures.txt" -root="$ROOT" -format="DDS" -quiet -cleanup
     xargs -a "$BASE_DIR/build/textures.txt" -d '\n' rm
+    find . -type d -empty -delete
+    if [[ "$QUIET" == "" ]]
+    then
+      echo "  $2 ($(stat --printf="%s" "$2") bytes)"
+    fi
   fi
-  find . -type d -empty -delete
   rm "$BASE_DIR/build/textures.txt"
-  if [[ "$QUIET" == "" ]]
-  then
-     echo "  Created: $2"
-  fi
   cd "$BASE_DIR"
 }
 
 # call the functions for the package/0_Common folder
-pack_assets "package/0_Common" "RealHandcuffs - Assets.ba2"
+pack_assets "package/0_Common" "RealHandcuffs - Main.ba2"
 pack_textures "package/0_Common" "RealHandcuffs - Textures.ba2"
 
 # create archive of build/package
