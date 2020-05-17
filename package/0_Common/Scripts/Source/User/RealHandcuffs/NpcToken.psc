@@ -963,7 +963,7 @@ Event OnPlayerTeleport()
     If (boundHandsPackage != None)
         Actor followRoot = boundHandsPackage.GetFollowRoot(Target)
         If (followRoot != None)
-            Utility.Wait(2) ; give the game time to move followers etc
+            Utility.Wait(1) ; give the game time to move followers etc
             If (Target != None)
                 Actor player = Game.GetPlayer()
                 If (followRoot == player || followRoot.GetParentCell() == player.GetParentCell())
