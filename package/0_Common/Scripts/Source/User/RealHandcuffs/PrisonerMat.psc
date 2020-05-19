@@ -432,7 +432,7 @@ EndFunction
 ; Timer definitions.
 ;
 Group Timers
-    Int Property UpdateRegisteredActorRestraint = 1 AutoReadOnly
+    Int Property UpdateRegisteredActorRestraint = 1001 AutoReadOnly
 EndGroup
 
 ;
@@ -454,5 +454,7 @@ Event OnTimer(Int aiTimerID)
                 EquipTemporaryRestraint(registeredActor)
             EndIf
         EndIf
+    Else
+        Parent.OnTimer(aiTimerID)
     EndIf
 EndEvent

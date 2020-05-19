@@ -114,30 +114,7 @@ Function StartAnimationAndWait(Actor akActor, String animationToPlay, Bool playE
     If (_currentAnimation == "")
         Return ; concurrent stop of animation, abort
     EndIf
-    IdleMarker idleMarkerForAnimation = Library.AnimationHandler.GetIdleMarkerFor(_currentAnimation)
-    If (idleMarkerForAnimation == None)
-        RealHandcuffs:Log.Warning("Failed to get idle marker for animation '" + _currentAnimation + "'.", Library.Settings)
-    Else
-        _idleMarker = PlaceAtMe(idleMarkerForAnimation, 1, false, false, true)
-        If (WaitAngleZ != 0)
-            Float angleZ = GetAngleZ() + WaitAngleZ
-            If (angleZ >= 360)
-                angleZ -= 360
-            EndIf
-            If (Math.Abs(_idleMarker.GetAngleZ() - angleZ) > 0.5)
-                _idleMarker.SetAngle(_idleMarker.GetAngleX(), _idleMarker.GetAngleY(), angleZ)
-            EndIf
-        EndIf
-        Float[] idleMarkerOffset = Library.AnimationHandler.GetIdleMarkerOffsetXY(_currentAnimation)
-        If (idleMarkerOffset != None && (idleMarkerOffset[0] != 0 || idleMarkerOffset[1] != 0))
-            Float alpha = 90 - _idleMarker.GetAngleZ() ; use math conventions for calculation
-            Float sinAlpha = Math.Sin(alpha)
-            Float cosAlpha = Math.Cos(alpha)
-            Float offsetX = idleMarkerOffset[0] * cosAlpha - idleMarkerOffset[1] * sinAlpha
-            Float offsetY = idleMarkerOffset[0] * sinAlpha + idleMarkerOffset[1] * cosAlpha
-            _idleMarker.MoveTo(_idleMarker, offsetX, offsetY, 0, true)
-        EndIf
-    EndIf
+    PlaceIdleMarker()
     If (cellIsAttached && playEnterAnimation)
         Float waitTime = Library.AnimationHandler.PlayEnterFromStand(akActor, _currentAnimation)
         TranslateToIdleMarker(akActor, waitTime)
@@ -160,6 +137,44 @@ Function StartAnimationAndWait(Actor akActor, String animationToPlay, Bool playE
     EndIf
 EndFunction
 
+;
+; Place an idle marker for the current animation.
+; Requires _currentAnimation to be set to something other than "", and _idleMarker to be None.
+;     
+Function PlaceIdleMarker()
+    IdleMarker idleMarkerForAnimation = Library.AnimationHandler.GetIdleMarkerFor(_currentAnimation)
+    If (idleMarkerForAnimation == None)
+        RealHandcuffs:Log.Warning("Failed to get idle marker for animation '" + _currentAnimation + "'.", Library.Settings)
+    Else
+        _idleMarker = PlaceAtMe(idleMarkerForAnimation, 1, false, false, true)
+        PositionIdleMarker()
+    EndIf
+EndFunction
+    
+;
+; Move the idle marker to the correct position/orientation.
+; Requires _idleMarker to be not None.
+;
+Function PositionIdleMarker()
+    If (WaitAngleZ != 0)
+        Float angleZ = GetAngleZ() + WaitAngleZ
+        If (angleZ >= 360)
+            angleZ -= 360
+        EndIf
+        If (Math.Abs(_idleMarker.GetAngleZ() - angleZ) > 0.5)
+            _idleMarker.SetAngle(_idleMarker.GetAngleX(), _idleMarker.GetAngleY(), angleZ)
+        EndIf
+    EndIf
+    Float[] idleMarkerOffset = Library.AnimationHandler.GetIdleMarkerOffsetXY(_currentAnimation)
+    If (idleMarkerOffset != None && (idleMarkerOffset[0] != 0 || idleMarkerOffset[1] != 0))
+        Float alpha = 90 - _idleMarker.GetAngleZ() ; use math conventions for calculation
+        Float sinAlpha = Math.Sin(alpha)
+        Float cosAlpha = Math.Cos(alpha)
+        Float offsetX = idleMarkerOffset[0] * cosAlpha - idleMarkerOffset[1] * sinAlpha
+        Float offsetY = idleMarkerOffset[0] * sinAlpha + idleMarkerOffset[1] * cosAlpha
+        _idleMarker.MoveTo(_idleMarker, offsetX, offsetY, 0, true)
+    EndIf
+EndFunction
 
 ;
 ; Stop the animation. This function will block until the animation has fully stopped.
@@ -261,6 +276,7 @@ Event OnCellAttach()
         FixPositionAndAnimation()
         RegisterForPlayerSleep()
         RegisterForPlayerWait()
+        StartTimer(1, FixPosition5x) ; workaround, actors can fall through geometry directly after the cell has attached
     EndIf
 EndEvent
 
@@ -283,12 +299,7 @@ Event OnPlayerTeleport()
         ; try to fix the position in case another mod (e.g. Better Followers) teleported the NPC
         ; this is a race condition, the last one wins; we try to "lose the race" by slowing down
         ; a bit, but this is still somewhat unreliable and may occasionally fail
-        Utility.Wait(0.25)
-        If (_idleMarker == None)
-            MoveIntoPosition(registeredActor)
-        Else
-            registeredActor.MoveTo(_idleMarker, 0, 0, 0, true)
-        EndIf
+        StartTimer(0.5, FixPosition)
     EndIf
 EndEvent
 
@@ -314,14 +325,17 @@ EndEvent
 Function FixPositionAndAnimation()
     Actor registeredActor = GetRegisteredActor()
     If (registeredActor != None && registeredActor != Game.GetPlayer())
-        If (_idleMarker == None)
-            MoveIntoPosition(registeredActor)
-        Else
-            registeredActor.MoveTo(_idleMarker, 0, 0, 0, true)
-        EndIf
         If (_currentAnimation != "" && GetParentCell().IsAttached())
+            registeredActor.WaitFor3DLoad()
             Library.AnimationHandler.PlayIdleLoop(registeredActor, _currentAnimation)
         EndIf
+        If (_idleMarker == None && _currentAnimation != "")
+            PlaceIdleMarker()
+        EndIf
+        If (_idleMarker != None)
+            PositionIdleMarker()
+        EndIf
+        MoveIntoPosition(registeredActor)
     EndIf
 EndFunction
 
@@ -386,3 +400,34 @@ Function TranslateToIdleMarker(ObjectReference target, Float duration)
     target.TranslateTo(_idleMarker.X, _idleMarker.Y, _idleMarker.Z, target.GetAngleX(), target.GetAngleY(), angleZ, distance/duration, angleDistance/duration)
 EndFunction
 
+;
+; Group for timer events.
+;
+Group Timers
+    Int Property FixPosition = 1 AutoReadOnly
+    Int Property FixPosition5x = 5 AutoReadOnly
+EndGroup
+
+;
+; Timer event.
+;
+Event OnTimer(int aiTimerID)
+    If (aiTimerID >= FixPosition && aiTimerID <= FixPosition5x)
+        Actor registeredActor = GetRegisteredActor()
+        If (registeredActor != None && registeredActor != Game.GetPlayer())
+            Float distance
+            If (_idleMarker == None)
+                distance = GetDistance(registeredActor)
+            Else
+                distance = _idleMarker.GetDistance(registeredActor)
+            EndIf
+            If (distance >= 5) ; heuristic value for difference
+                RealHandcuffs:Log.Info("Fixing position of " + RealHandcuffs:Log.FormIdAsString(registeredActor) + " " + registeredActor.GetDisplayName() + " (distance=" + distance + ").", Library.Settings)
+                MoveIntoPosition(registeredActor)
+                If (aiTimerID > FixPosition && GetParentCell().IsAttached())
+                    StartTimer(1.0, aiTimerID - 1)
+                EndIf
+            EndIf
+        EndIf
+    EndIf
+EndEvent

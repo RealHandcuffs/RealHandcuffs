@@ -8,6 +8,7 @@
 |   +- Devious Devices Servitron/           optional files to improve compatibility with Devious Devices and with Servitron - use this folder instead of Devious Devices and Servitron folders if using both
 |   +- Just Business/                       optional files to improve compatibility with Just Business
 |   +- Servitron/                           optional files to improve compatibility with Servitron
+|   +- Sim Settlements Conqueror/           optional files to improve compatibility with Sim Settlements Conqueror
 |
 +- 5_ThirdParty/
 +- +- LL FourPlay community F4SE plugin/    fourPlay F4SE community plugin
