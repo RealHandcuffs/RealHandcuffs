@@ -437,5 +437,5 @@ various fixes and improvements
 - they should also work on vanilla collars added by any other mod, as long as the mod is using the NukaWorld armor object
 - NPCs will now start exiting furniture as soon as their shock collar starts beeping
 - increase chance that captives are still in place when returning to a settlement
-- DD compatibility plugin: remove neck slots usage from  institure leg cuffs (bug in DD causing compatibility issues with shock collar)
+- DD compatibility plugin: remove neck slots usage from institute leg cuffs (bug in DD causing compatibility issues with shock collar)
 - add suport for canary save file monitor

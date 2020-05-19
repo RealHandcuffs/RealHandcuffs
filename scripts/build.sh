@@ -135,8 +135,8 @@ then
  echo "Creating archive:"
 fi
 VERSION=$(cat build/package/FOMod/info.xml | sed -nr 's/.*<Version>([^<]+)<\/Version>.*/\1/p')
-"$TOOL_7ZIP" a -t7z -mx=9 -mmt=off "build\RealHandcuffs $VERSION.7z" ".\build\package\*" > /dev/null
+"$TOOL_7ZIP" a -t7z -mx=9 -mmt=off "build\RealHandcuffs.$VERSION.7z" ".\build\package\*" > /dev/null
 if [[ "$QUIET" == "" ]]
 then
- echo "  build/RealHandcuffs $VERSION.7z ($(stat --printf="%s" "$BASE_DIR/build/RealHandcuffs $VERSION.7z") bytes)"
+ echo "  build/RealHandcuffs.$VERSION.7z ($(stat --printf="%s" "$BASE_DIR/build/RealHandcuffs.$VERSION.7z") bytes)"
 fi
