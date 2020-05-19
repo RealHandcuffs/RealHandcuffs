@@ -425,7 +425,17 @@ Version 0.4.5
 =============
 small quality of life improvements
 - when a NPC (follower, JB slave, ...) is commanded to use a prisoner mat, they are automatically assigned to the workshop
-- add a new MCM setting to disable the above behavior ("Automatically Assign Prioner Mat Users to Workshop")
+- add a new MCM setting to disable the above behaviour ("Automatically Assign Prioner Mat Users to Workshop")
 - add recipe for crafting high security handcuffs in one step, instead of crafting regular handcuffs and then upgrading the lock
 - add recipe for crafting hacked shock collars in one step, instead of crafting mark ii/iii collars and then replacing the firmware
-- add option in MCM debug menu to equip restraints on player or on  npc under crosshair, for easier testing of new features (somewhat experimental)
+- add option in MCM debug menu to equip restraints on player or on  NPC under crosshair, for easier testing of new features (somewhat experimental)
+
+Version 0.4.6
+=============
+various fixes and improvements
+- remote trigger will now work on collars of NukaWorld traders/captives (repeated shocks can kill, be careful not to kill the traders!)
+- they should also work on vanilla collars added by any other mod, as long as the mod is using the NukaWorld armor object
+- NPCs will now start exiting furniture as soon as their shock collar starts beeping
+- increase chance that captives are still in place when returning to a settlement
+- DD compatibility plugin: remove neck slots usage from  institure leg cuffs (bug in DD causing compatibility issues with shock collar)
+- add suport for canary save file monitor

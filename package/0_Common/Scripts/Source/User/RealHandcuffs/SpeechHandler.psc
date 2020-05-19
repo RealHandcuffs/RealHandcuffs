@@ -1,5 +1,6 @@
 ;
 ; Contains functions that make actors say generic topics.
+; Conceptually this is a big switch-case statement for various voice types.
 ;
 Scriptname RealHandcuffs:SpeechHandler extends Quest
 
@@ -52,8 +53,13 @@ Bool Function SayTopic(Actor akActor, String topicIdentifier)
     If (VoicesDialogueGenericList.HasForm(voice))
         Return SayTopicGenericVoice(akActor, topicIdentifier)
     EndIf
-    If (Library.SoftDependencies.DLCNukaWorldAvailable && Library.SoftDependencies.DLC04VoicesDialogueRaider.HasForm(voice))
-        Return SayTopicDLC04RaiderVoice(akActor, topicIdentifier)
+    If (Library.SoftDependencies.DLCNukaWorldAvailable)
+        If (Library.SoftDependencies.DLC04VoicesDialogueRaider.HasForm(voice))
+            Return SayTopicDLC04RaiderVoice(akActor, topicIdentifier)
+        EndIf
+        If (Library.SoftDependencies.DLC04SettlementNPCVoices.HasForm(voice))
+            Return SayTopicDLC04SettlementNPCVoice(akActor, topicIdentifier)
+        EndIf
     EndIf
     If (Library.SoftDependencies.SSConquerorAvailable && Library.SoftDependencies.kgConq_RaiderGangVoiceList.HasForm(voice))
         Return SayTopicSSConqRaiderGangVoice(akActor, topicIdentifier)
@@ -85,13 +91,13 @@ Bool Function SayTopicDeviousDevicesGagged(Actor akActor, String topicIdentifier
 EndFunction
 
 ;
-; Function to say topics for actors using the generic voice.
+; Function to say topics for actors using generic voices.
 ;
 Bool Function SayTopicGenericVoice(Actor akActor, String topicIdentifier)
     If (topicIdentifier == Bleedout)
         akActor.Say(DialogueGenericBleedoutGroup, None, false, None)
     ElseIf (topicIdentifier == Pain)
-        ; use the deat topic, it has more pronounced screams than the hit topic
+        ; use the death topic, it has more pronounced screams than the hit topic
         akActor.Say(DialogueGenericDeathGroup, None, false, None)
     Else
         Return false
@@ -100,7 +106,7 @@ Bool Function SayTopicGenericVoice(Actor akActor, String topicIdentifier)
 EndFunction
 
 ;
-; Function to say topics for actors using the NukaWorld raider voice.
+; Function to say topics for actors using the NukaWorld raider voices.
 ;
 Bool Function SayTopicDLC04RaiderVoice(Actor akActor, String topicIdentifier)
     If (topicIdentifier == Bleedout)
@@ -119,7 +125,20 @@ Bool Function SayTopicDLC04RaiderVoice(Actor akActor, String topicIdentifier)
 EndFunction
 
 ;
-; Function to say topics for actors using the Sim Settlements Conqueror Raider Gang voice.
+; Function to say topics for actors using the NukaWorld settlement voices.
+;
+Bool Function SayTopicDLC04SettlementNPCVoice(Actor akActor, string topicIdentifier)
+    If (topicIdentifier == Bleedout || topicIdentifier == Pain)
+        ; there is no bleedout/hit topic, use the death topic
+        akActor.Say(Library.SoftDependencies.DLC04SettlementDeathGroup, None, false, None)
+    Else
+        Return false
+    EndIf
+    Return true
+EndFunction
+
+;
+; Function to say topics for actors using the Sim Settlements Conqueror Raider Gang voices.
 ;
 Bool Function SayTopicSSConqRaiderGangVoice(Actor akActor, String topicIdentifier)
     If (topicIdentifier == Bleedout)

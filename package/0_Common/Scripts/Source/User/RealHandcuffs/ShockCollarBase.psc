@@ -252,6 +252,14 @@ Function Trigger(Actor target, Bool force)
             If (target != None && target.GetSleepState() != 0 && !target.IsInScene())
                 ; force temporary wakeup
                 Library.StartDummyScene(target)
+            Else
+                ObjectReference currentFurniture = target.GetFurnitureReference()
+                If (currentFurniture != None)
+                    WorkshopObjectScript woFurniture = currentFurniture as WorkshopObjectScript
+                    If (woFurniture == None || !woFurniture.bWork24Hours)
+                        target.PlayIdleAction(Library.Resources.ActionInteractionExitQuick)
+                    EndIf
+                EndIf
             EndIf
             StartTimer(0.5, DoTrigger)
         EndIf
@@ -373,6 +381,14 @@ Function ForceTriggerInternal(Actor target)
     If (target.GetSleepState() != 0 && !target.IsInScene())
         ; force temporary wakeup
         Library.StartDummyScene(target)
+    Else
+        ObjectReference currentFurniture = target.GetFurnitureReference()
+        If (currentFurniture != None)
+            WorkshopObjectScript woFurniture = currentFurniture as WorkshopObjectScript
+            If (woFurniture == None || !woFurniture.bWork24Hours)
+                target.PlayIdleAction(Library.Resources.ActionInteractionExitQuick)
+            EndIf
+        EndIf    
     EndIf
     Utility.Wait(0.5)
     Sound.StopInstance(playbackId)

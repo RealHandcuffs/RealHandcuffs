@@ -36,8 +36,10 @@ The contents of each copied folder must be copied into your /Fallout 4/Data fold
     Contains an additional plugin to improve compatibility with Servitron. COPY if you are using Servitron, unless you are also using Devious Devices.
   - 4_Compatibility/Devious Devices Servitron
     Contains an additional plugin to improve compatibility with both Devious Devices and Servitron. COPY instead of above folders if you are using both.
+  - 4_Compatibility/Sim Settlements Conqueror
+    Contains an additional plugin to improve compatibility with both Sim Settlements Conqueror. COPY if you are using Sim Settlements Conqueror.
     
 5_ThirdParty
   Contains additional files that are required third-party dependencies. Never copy the contents of this folder directly; instead copy the contents of each subfolder.
   - 5_ThirdParty/LL FourPlay community F4SE plugin
-    LLFP plugin v30. This is a required dependency. COPY the contents of this folder, unless you already have a newer version of the LLFP Plugin.
+    LLFP plugin v38. This is a required dependency. COPY the contents of this folder, unless you already have a newer version of the LLFP Plugin.

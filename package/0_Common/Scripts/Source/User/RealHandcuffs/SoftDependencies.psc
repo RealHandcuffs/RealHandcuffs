@@ -12,6 +12,8 @@ Keyword Property ActorTypeNPC Auto Const Mandatory
 Keyword Property ActorTypeRobot Auto Const Mandatory
 Keyword Property ActorTypeSuperMutant Auto Const Mandatory
 Keyword Property ActorTypeSynth Auto Const Mandatory
+Keyword Property VanillaShockCollarTriggering Auto Const Mandatory
+Sound Property MineTickLoop Auto Const Mandatory
 
 ;
 ; Group for names of soft dependency plugins.
@@ -26,6 +28,7 @@ Group Plugins
     String Property KnockoutFramework          = "Knockout Framework.esm" AutoReadOnly
     String Property AdvancedAnimationFramework = "AAF.esm" AutoReadOnly
     String Property SSConqueror                = "SimSettlements_XPAC_Conqueror.esp" AutoReadOnly
+    String Property CanarySaveFileMonitor      = "CanarySaveFileMonitor.esl" AutoReadOnly
 EndGroup
 
 ;
@@ -88,6 +91,8 @@ Group NukaWorld
     Topic Property DLC04GenericHitGroup Auto
     Topic Property DLC04GenericDeathGroup Auto
     Topic Property DLC04GenericBleedoutGroup Auto
+    FormList Property DLC04SettlementNPCVoices Auto
+    Topic Property DLC04SettlementDeathGroup Auto
 EndGroup
 
 ;
@@ -146,6 +151,13 @@ Group SSConqueror
 EndGroup
 
 ;
+; Property used by Canary Save File Monitor
+;
+Group CanarySaveFileMonitor
+    Int Property iSaveFileMonitor Auto Hidden ; Do not mess with ever - this is used by Canary to track data loss
+EndGroup
+
+;
 ; Refresh the third party dependencies when the game is loaded.
 ;
 Function RefreshOnGameLoad()
@@ -161,6 +173,7 @@ Function RefreshOnGameLoad()
     KnockoutFrameworkAvailable = GetKnockoutFrameworkForms()
     AdvancedAnimationFrameworkAvailable = GetAdvancedAnimationFrameworkForms()
     SSConquerorAvailable = GetSSConquerorForms()
+    Bool CanarySaveFileMonitorAvailable = CheckForCanary()
     SoftDependenciesLoading = false
     If (Library.Settings.InfoLoggingEnabled)
        String list = ""
@@ -190,6 +203,9 @@ Function RefreshOnGameLoad()
         EndIf
         If (SSConquerorAvailable)
             list = AddToList(list, SSConqueror)
+        EndIf
+        If (CanarySaveFileMonitorAvailable)
+            list = AddToList(list, CanarySaveFileMonitor)
         EndIf
         RealHandcuffs:Log.Info("Available soft dependencies: " + list, Library.Settings)
     EndIf
@@ -268,7 +284,9 @@ Bool Function GetDLCNukaWorldForms()
     DLC04GenericHitGroup = Game.GetFormFromFile(0x009699, DLCNukaWorld) as Topic
     DLC04GenericDeathGroup = Game.GetFormFromFile(0x00969b, DLCNukaWorld) as Topic
     DLC04GenericBleedoutGroup = Game.GetFormFromFile(0x009636, DLCNukaWorld) as Topic
-    Return DLC04VoicesDialogueRaider != None && DLC04GenericHitGroup != None && DLC04GenericDeathGroup != None && DLC04GenericBleedoutGroup != None
+    DLC04SettlementNPCVoices = Game.GetFormFromFile(0x028837, DLCNukaWorld) as FormList
+    DLC04SettlementDeathGroup = Game.GetFormFromFile(0x028821, DLCNukaWorld) as Topic
+    Return DLC04VoicesDialogueRaider != None && DLC04GenericHitGroup != None && DLC04GenericDeathGroup != None && DLC04GenericBleedoutGroup != None && DLC04SettlementNPCVoices != None && DLC04SettlementDeathGroup != None
 EndFunction
 
 ;
@@ -369,6 +387,20 @@ Bool Function GetSSConquerorForms()
 EndFunction
 
 ;
+; Check for save file canary.
+;
+Bool Function CheckForCanary()
+    If (!Game.IsPluginInstalled(CanarySaveFileMonitor))
+        Return false
+    EndIf
+    Var[] kArgs = new Var[2]
+    kArgs[0] = Self as Quest
+    kArgs[1] = "RealHandcuffs:SoftDependencies" ; must be the same as the script name!
+    Utility.CallGlobalFunction("Canary:API", "MonitorForDataLoss", kArgs)
+    Return true
+EndFunction
+
+;
 ; Add a string to a comma-separated list.
 ;
 String Function AddToList(String list, String item)
@@ -376,6 +408,45 @@ String Function AddToList(String list, String item)
         Return item
     EndIf
     Return list + ", " + item
+EndFunction
+
+;
+; Check if an actor is wearing a vanilla shock collar.
+;
+Bool Function IsWearingVanillaShockCollar(Actor akActor)
+    Return ShockCollar != None && akActor.IsEquipped(ShockCollar)
+EndFunction
+
+;
+; Trigger the vanilla shock collar of an actor.
+; This function will take several seconds and block until the whole sequence is over.
+; Use IsWearingVanillaShockCollar to check if the actor is wearing a vanilla shock collar before calling it.
+;
+Function TriggerVanillaShockCollar(Actor akActor)
+    If (akActor == None || !akActor.GetParentCell().IsAttached() || akActor.HasKeyword(VanillaShockCollarTriggering))
+        Return
+    EndIf
+    akActor.AddKeyword(VanillaShockCollarTriggering) ; prevent further triggering while this function is running
+    akActor.WaitFor3DLoad()
+    Int playbackId = MineTickLoop.Play(akActor)
+    If (akActor.GetSleepState() != 0 && !akActor.IsInScene())
+        ; force temporary wakeup
+        Library.StartDummyScene(akActor)
+    Else
+        ObjectReference currentFurniture = akActor.GetFurnitureReference()
+        If (currentFurniture != None)
+            WorkshopObjectScript woFurniture = currentFurniture as WorkshopObjectScript
+            If (woFurniture == None || !woFurniture.bWork24Hours)
+                akActor.PlayIdleAction(Library.Resources.ActionInteractionExitQuick)
+            EndIf
+        EndIf
+    EndIf
+    Utility.Wait(0.5) ; beep for half a second
+    Sound.StopInstance(playbackId)
+    RealHandcuffs:Log.Info("Triggering vanilla shock collar of " + RealHandcuffs:Log.FormIdAsString(akActor) + " " + akActor.GetDisplayName() + ".", Library.Settings);    
+    Library.ZapWithDefaultShock(akActor)
+    Utility.Wait(1.0) ; use a dead time of one second after triggering
+    akActor.ResetKeyword(VanillaShockCollarTriggering)
 EndFunction
 
 ;
@@ -467,7 +538,7 @@ EndFunction
 ; Check if an actor is a valid victim for the JBMarkSpell.
 ;
 Bool Function IsValidJBMarkSpellVictim(Actor target)
-    Return JustBusinessAvailable && target != Game.GetPlayer() && !target.IsDead() && !Library.SoftDependencies.IsArmorRack(target) && !target.HasKeyword(ActorTypeRobot) && !target.HasKeyword(ActorTypeChild) && (target.HasKeyword(ActorTypeNPC) || target.HasKeyword(ActorTypeSuperMutant) || target.HasKeyword(ActorTypeSynth)) && !target.IsInFaction(JBSlaveFaction) && !target.HasMagicEffect(JBMarkEffect)
+    Return JustBusinessAvailable && !target.HasKeyword(VanillaShockCollarTriggering) && target != Game.GetPlayer() && !target.IsDead() && !Library.SoftDependencies.IsArmorRack(target) && !target.HasKeyword(ActorTypeRobot) && !target.HasKeyword(ActorTypeChild) && (target.HasKeyword(ActorTypeNPC) || target.HasKeyword(ActorTypeSuperMutant) || target.HasKeyword(ActorTypeSynth)) && !target.IsInFaction(JBSlaveFaction) && !target.HasMagicEffect(JBMarkEffect)
 EndFunction
 
 ;
@@ -578,7 +649,4 @@ Bool Function WakeKnockedOutActor(Actor target)
     target.SetUnconscious(false)
     target.SetValue(Paralysis, 0)
     Return true
-EndFunction
-
-Bool Function DismissFollower(Actor target)
 EndFunction

@@ -1,0 +1,12 @@
+1.  Open RealHandcuffs.esp from standard edition with FO4Edit and wait for background loader to finish.
+    - Remove the override of 'Container': 001E7DC9 'QAMiscComponentChest'
+    - Remove the overide of 'FormID List': 0017c667 'lootItemsUncommon'
+    - Remove the overide of 'FormID List': 00246EE7 'CA_JunkItems'
+    - Remove all overrides in 'Leveled Item'
+    - Remove the override of 'Misc. Item': 00059B3F 'Handcuffs'
+    - Expanding and scrolling through all categories, there should be no edit to existing forms
+    - Set the value of 'Global': XY00089D 'RH_IsLiteEdition' to 1
+    - Set the value of 'Global': XY0008DC 'RH_ChanceNoneRestraints' to 100
+    - Set the value of 'Global': XY0008DD 'RH_ChanceNoneKeys' to 100
+    - Set the value of 'Global': XY000937 'RH_ChanceNoneRemoteTrigger' to 100
+    - Close FO4Edit and save RealHandcuffs.psc
