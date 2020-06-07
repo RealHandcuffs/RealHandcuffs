@@ -30,7 +30,7 @@ Function HandleDeletion()
     Parent.HandleDeletion()
 EndFunction
 
-Function AssignActor(WorkshopNPCScript newActor = None)
+Function AssignActorCustom(WorkshopNPCScript newActor)
     PrisonerMat.AssignActor(newActor)
-    Parent.AssignActor(newActor)
+    Parent.AssignActorCustom(newActor)
 EndFunction

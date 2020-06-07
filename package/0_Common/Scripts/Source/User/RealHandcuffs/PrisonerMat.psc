@@ -356,7 +356,7 @@ Function AssignActor(WorkshopNPCScript newActor = None)
         EndIf
     EndIf
     assignedActor = newActor
-    If (assignedActor != None)
+    If (assignedActor != None && assignedActor != _assignedActor)
         _assignedActor = assignedActor
         assignedActor.SetLinkedRef(Self, Library.Resources.PrisonerMatLink)
         Library.PrisonerMatActors.AddRef(assignedActor)

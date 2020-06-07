@@ -276,7 +276,7 @@ Event OnCellAttach()
         FixPositionAndAnimation()
         RegisterForPlayerSleep()
         RegisterForPlayerWait()
-        StartTimer(1, FixPosition5x) ; workaround, actors can fall through geometry directly after the cell has attached
+        StartTimer(1.0, FixPositionUntilGood) ; workaround, actors can fall through geometry directly after the cell has attached
     EndIf
 EndEvent
 
@@ -405,27 +405,22 @@ EndFunction
 ;
 Group Timers
     Int Property FixPosition = 1 AutoReadOnly
-    Int Property FixPosition5x = 5 AutoReadOnly
+    Int Property FixPositionUntilGood = 2 AutoReadOnly
 EndGroup
 
 ;
 ; Timer event.
 ;
 Event OnTimer(int aiTimerID)
-    If (aiTimerID >= FixPosition && aiTimerID <= FixPosition5x)
+    If (aiTimerID == FixPosition || aiTimerID == FixPositionUntilGood)
         Actor registeredActor = GetRegisteredActor()
-        If (registeredActor != None && registeredActor != Game.GetPlayer())
-            Float distance
-            If (_idleMarker == None)
-                distance = GetDistance(registeredActor)
-            Else
-                distance = _idleMarker.GetDistance(registeredActor)
-            EndIf
-            If (distance >= 5) ; heuristic value for difference
+        If (registeredActor != None && registeredActor != Game.GetPlayer() && (aiTimerID == FixPosition || GetParentCell().IsAttached()))
+            Float distance = GetDistance(registeredActor)
+            If (distance >= 16) ; heuristic value for difference
                 RealHandcuffs:Log.Info("Fixing position of " + RealHandcuffs:Log.FormIdAsString(registeredActor) + " " + registeredActor.GetDisplayName() + " (distance=" + distance + ").", Library.Settings)
                 MoveIntoPosition(registeredActor)
-                If (aiTimerID > FixPosition && GetParentCell().IsAttached())
-                    StartTimer(1.0, aiTimerID - 1)
+                If (aiTimerID == FixPositionUntilGood && GetDistance(registeredActor) < 16)
+                    StartTimer(1.0, FixPositionUntilGood)
                 EndIf
             EndIf
         EndIf

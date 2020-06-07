@@ -439,3 +439,9 @@ various fixes and improvements
 - increase chance that captives are still in place when returning to a settlement
 - DD compatibility plugin: remove neck slots usage from institute leg cuffs (bug in DD causing compatibility issues with shock collar)
 - add suport for canary save file monitor
+
+Version 0.4.7
+=============
+compatibility with WorkshopFramework 2.0.0
+- change function used to detect assignment to prisoner mats to be compatible with WorkshopFramework 2
+- some tweaks to code that tries to keep captives in place when returning to a settlement
