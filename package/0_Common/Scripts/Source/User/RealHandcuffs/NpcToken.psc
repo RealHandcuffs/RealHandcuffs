@@ -71,6 +71,9 @@ Function Initialize(Actor myTarget)
         RegisterForCustomEvent(WorkshopParent, "WorkshopActorUnassigned")
         StartTimer(2, UpdateWorkshopSandboxLocation)
     EndIf
+    If (Library.SoftDependencies.AdvancedAnimationFrameworkAvailable && myTarget.GetActorBase() == Library.SoftDependencies.AAF_Doppelganger)
+        myTarget.AddKeyword(NoPackage) ; permanently add the NoPackage keyword to AAF doppelganger
+    EndIf
 EndFunction
 
 ;
@@ -189,6 +192,9 @@ Function RefreshOnGameLoad(Bool upgrade)
             WorkshopNpcScript workshopNpc = Target as WorkshopNpcScript
             If (workshopNpc != None)
                 StartTimer(2, UpdateWorkshopSandboxLocation)
+            EndIf
+            If (Library.SoftDependencies.AdvancedAnimationFrameworkAvailable && Target.GetActorBase() == Library.SoftDependencies.AAF_Doppelganger)
+                Target.AddKeyword(NoPackage) ; permanently add the NoPackage keyword to AAF doppelganger
             EndIf
         EndIf
     EndIf
