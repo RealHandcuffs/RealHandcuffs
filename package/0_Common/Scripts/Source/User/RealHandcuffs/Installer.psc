@@ -23,7 +23,7 @@ String Property UpdatePendingState = "UpdatePending" AutoReadOnly ; 'update pend
 String Property DisabledState      = "Disabled"      AutoReadOnly ; 'disabled' state, will never change
 
 String Property StateVersion       = "V1"            AutoReadOnly ; internal state version string, will change when a new version requires different install/uninstall steps
-String Property DetailedVersion    = "0.4.8 alpha 1" AutoReadOnly ; user version string, will change with every new version
+String Property DetailedVersion    = "0.4.8 alpha 2" AutoReadOnly ; user version string, will change with every new version
 
 String Property InstalledDetailedVersion Auto ; currently installed detailed version
 String Property InstalledEdition Auto         ; currently installed edition
@@ -296,17 +296,28 @@ State V1
             If (token != None && !token.CheckConsistency(restrainedNpc))
                 token = Library.TryGetActorToken(restrainedNpc)
             EndIf
-            If (token == None || restrainedNpc.IsDead() || token.Restraints == None || token.Restraints.Length == 0) ; fallback code, not expected
+            If (token == None || restrainedNpc.IsDead() || restrainedNpc.IsDeleted() || token.Restraints == None || token.Restraints.Length == 0)
                 String reason
+                Bool warning = true
                 If (token == None)
                     reason = "no token"
                 ElseIf (restrainedNpc.IsDead())
                     reason = "dead"
+                ElseIf (restrainedNpc.IsDeleted())
+                    reason = "deleted"
+                    warning = false
                 Else
                     reason = "no restraints"
                 EndIf
+                If (token != None)
+                    token.Uninitialize()
+                EndIf
                 restrained.RemoveRef(restrainedNpc)
-                RealHandcuffs:Log.Warning("Removed from restrained NPCs [" + restrained.GetCount() + "]: " + RealHandcuffs:Log.FormIdAsString(restrainedNpc) + " " + restrainedNpc.GetDisplayName() + " (" + reason + ")", Library.Settings)
+                If (warning)
+                    RealHandcuffs:Log.Warning("Removed from restrained NPCs [" + restrained.GetCount() + "]: " + RealHandcuffs:Log.FormIdAsString(restrainedNpc) + " " + restrainedNpc.GetDisplayName() + " (" + reason + ")", Library.Settings)
+                Else
+                    RealHandcuffs:Log.Info("Removed from restrained NPCs [" + restrained.GetCount() + "]: " + RealHandcuffs:Log.FormIdAsString(restrainedNpc) + " " + restrainedNpc.GetDisplayName() + " (" + reason +  ")", Library.Settings)
+                EndIf
             Else
                 token.RefreshOnGameLoad(true)
                 token.RefreshEventRegistrations()
@@ -424,17 +435,28 @@ State V1
             If (token != None && !token.CheckConsistency(restrainedNpc))
                 token = Library.TryGetActorToken(restrainedNpc)
             EndIf
-            If (token == None || restrainedNpc.IsDead() || token.Restraints == None || token.Restraints.Length == 0) ; fallback code, not expected
+            If (token == None || restrainedNpc.IsDead() || restrainedNpc.IsDeleted() || token.Restraints == None || token.Restraints.Length == 0)
                 String reason
+                Bool warning = true
                 If (token == None)
                     reason = "no token"
                 ElseIf (restrainedNpc.IsDead())
                     reason = "dead"
+                ElseIf (restrainedNpc.IsDeleted())
+                    reason = "deleted"
+                    warning = false
                 Else
                     reason = "no restraints"
                 EndIf
+                If (token != None)
+                    token.Uninitialize()
+                EndIf
                 restrained.RemoveRef(restrainedNpc)
-                RealHandcuffs:Log.Warning("Removed from restrained NPCs [" + restrained.GetCount() + "]: " + RealHandcuffs:Log.FormIdAsString(restrainedNpc) + " " + restrainedNpc.GetDisplayName() + " (" + reason + ")", Library.Settings)
+                If (warning)
+                    RealHandcuffs:Log.Warning("Removed from restrained NPCs [" + restrained.GetCount() + "]: " + RealHandcuffs:Log.FormIdAsString(restrainedNpc) + " " + restrainedNpc.GetDisplayName() + " (" + reason + ")", Library.Settings)
+                Else
+                    RealHandcuffs:Log.Info("Removed from restrained NPCs [" + restrained.GetCount() + "]: " + RealHandcuffs:Log.FormIdAsString(restrainedNpc) + " " + restrainedNpc.GetDisplayName() + " (" + reason + ")", Library.Settings)
+                EndIf
             Else
                 token.RefreshOnGameLoad(false)
                 index += 1

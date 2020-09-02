@@ -449,4 +449,7 @@ compatibility with WorkshopFramework 2.0.0
 Version 0.4.8 (PRERELEASE)
 ==========================
 TODO one-line summary of changes
-- do not apply packages to AAF player doppelganger 
+- use special idle action instead of bleedout to force NPCs to stow weapons
+- fix: unassign companions who are assigned to prisoner mat when told to follow the player again
+- do not apply packages to AAF player doppelganger (by putting RH_NoPackage keyword on doppelganger)
+- make sure deleted NPCs (e.g. old AFF play doppelganger) are cleaned from the RefCollectionAlias on game load

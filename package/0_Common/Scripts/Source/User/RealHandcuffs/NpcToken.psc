@@ -38,7 +38,7 @@ ObjectReference _commandTarget
 
 Form[] _preventUnequipAllBug
 Float _lastKickAiTimestamp
-Float _lastKnockoutAiTimestamp
+Float _lastInitializeMtGraphTimestamp
 
 ;
 ; Override: Get whether the hands of the actor are currently bound behind their back.
@@ -158,8 +158,8 @@ Function RefreshOnGameLoad(Bool upgrade)
         If (_lastKickAiTimestamp > realTime)
             _lastKickAiTimestamp = 0
         EndIf
-        If (_lastKnockoutAiTimestamp > realTime)
-            _lastKnockoutAiTimestamp = 0
+        If (_lastInitializeMtGraphTimestamp > realTime)
+            _lastInitializeMtGraphTimestamp = 0
         EndIf
         If (Restraints.Length == 0 || Target.IsDead())
             ; fallback for cleanup only, should not be necessary in theory
@@ -1039,100 +1039,22 @@ Function FixWeaponDrawn()
         StartTimer(3, WaitForConsciousness)
     Else
         ; For some unknown reason NPCs sometimes get stuck with drawn weapon animations.
-        ; It is hard to find a reliable way to solve this, currently the best way is to force them into bleedout.
-        ; Only do this if we have not done it in the last ninety seconds
+        ; It is hard to find a reliable way to solve this, currently the best way is to initialize the MT graph
+        ; Only do this if we have not done it in the last thirty seconds
         Utility.Wait(2) ; give HandleBoundHandsPackageChanged a chance to fix the situation before forcing bleedout
-        Float realTime = Utility.GetCurrentRealTime() ; give 
-        If (Target.IsWeaponDrawn() && (_lastKnockoutAiTimestamp == 0 || (realTime - _lastKnockoutAiTimestamp) > 90))
-            _lastKnockoutAiTimestamp = realTime
+        Float realTime = Utility.GetCurrentRealTime()
+        If (Target.IsWeaponDrawn() && (_lastInitializeMtGraphTimestamp == 0 || (realTime - _lastInitializeMtGraphTimestamp) > 30))
+            _lastInitializeMtGraphTimestamp = realTime
             CancelTimer(WaitForConsciousness)
             CancelTimer(StartCheckingWeapon)
             UnregisterForAnimationEvent(Target, "weaponDraw")
             UnregisterForRemoteEvent(Target, "OnLoad")
             If (Library.Settings.InfoLoggingEnabled)
-                RealHandcuffs:Log.Info("Forcing into bleedout to reset animations: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
+                RealHandcuffs:Log.Info("Initializing MT graph: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
             EndIf
-            Int waitCount = 0
-            While (Library.SoftDependencies.SoftDependenciesLoading && waitCount < 12)
-                Utility.Wait(0.25)
-                waitCount += 1
-            EndWhile
-            If (Library.SoftDependencies.SoftDependenciesLoading)
-                RealHandcuffs:Log.Error("Aborted waiting for soft dependencies.", Library.Settings)
-            ElseIf (waitCount > 0)
-                If (Library.Settings.InfoLoggingEnabled)
-                    RealHandcuffs:Log.Info("Waited for soft dependencies: " + waitCount + " iterations.", Library.Settings)
-                EndIf
-            EndIf
-            If (Library.SoftDependencies.WillUseKnockoutFramework(Target))
-                ; knockout framework is installed and configured to knock out the target, use it instead of bleedout
-                ActorValue health = Game.GetHealthAV()
-                Float currentHealth = Target.GetValue(health)
-                Library.SoftDependencies.KnockoutActor(Target)
-                StartTimer(3, WaitForConsciousness)
-                waitCount = 0
-                While (waitCount < 20)
-                    Utility.Wait(0.25)
-                    If (Library.SoftDependencies.WakeKnockedOutActor(Target))
-                        Float lostHealth = currentHealth - Target.GetValue(health)
-                        Target.RestoreValue(health, lostHealth)
-                        Return
-                    EndIf
-                    waitCount += 1
-                EndWhile
-                RealHandcuffs:Log.Warning("Failed to wake knocked-out actor: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
-            Else
-                Bool noBleedoutRecoveryCleared = Target.GetNoBleedoutRecovery()
-                If (noBleedoutRecoveryCleared)
-                    ; clear NoBleedoutRecovery flag as it can cause instant heal effects with companions
-                    Target.SetNoBleedoutRecovery(false)
-                EndIf
-                Bool addedToEssentialActors = Library.EssentialActors.Find(Target) < 0
-                If (addedToEssentialActors)
-                    Library.EssentialActors.AddRef(Target)
-                EndIf
-                ActorValue health = Game.GetHealthAV()
-                Float originalHealth = Target.GetValue(health)
-                Target.Kill(None) ; will survive because it is in the EssentialActions refcollectionalias
-                Utility.Wait(0.1)
-                Target.SetNoBleedoutRecovery(true)
-                Bool noBleedoutRecoverySet = !noBleedoutRecoveryCleared
-                Float healthDelta = Target.GetValue(health) - originalHealth;
-                If (healthDelta < 0)
-                    Target.RestoreValue(health, -healthDelta)
-                ElseIf (healthDelta > 0)
-                    Target.DamageValue(health, healthDelta)
-                EndIf
-                If (addedToEssentialActors)
-                    Library.EssentialActors.RemoveRef(Target) ; only do this after restoring health
-                EndIf
-                Target.SetValue(HC_IsCompanionInNeedOfHealing, 0)
-                Utility.Wait(1.0)
-                If (noBleedoutRecoverySet)
-                    target.SetNoBleedoutRecovery(false)
-                EndIf
-                If (!Target.IsDead() && Target.IsBleedingOut() && Target.GetNoBleedoutRecovery())
-                    If (Library.Settings.InfoLoggingEnabled)
-                        RealHandcuffs:Log.Info("Using workaround to make " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " get up again.", Library.Settings)
-                    EndIf
-                    Target.SetNoBleedoutRecovery(false)
-                    waitCount = 0
-                    While (waitCount < 1000 && Target.IsBleedingOut())
-                        Utility.Wait(0.1)
-                        waitCount += 1
-                    EndWhile
-                    Target.SetNoBleedoutRecovery(true)
-                    If (Library.Settings.InfoLoggingEnabled)
-                        RealHandcuffs:Log.Info("Finished workaround for " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
-                    EndIf
-                EndIf
-            EndIf
-            _lastKnockoutAiTimestamp = realTime
-            CancelTimer(WaitForConsciousness)
-            CancelTimer(StartCheckingWeapon)
-            UnregisterForAnimationEvent(Target, "weaponDraw")
-            UnregisterForRemoteEvent(Target, "OnLoad")
-            StartTimer(3, WaitForConsciousness)
+            Idle InitializeMTGraphInstant = Game.GetFormFromFile(0x080D4A, "Fallout4.esm") as Idle
+            Target.PlayIdle(InitializeMTGraphInstant)
+            StartTimer(3, StartCheckingWeapon)
         EndIf
     EndIf
 EndFunction
