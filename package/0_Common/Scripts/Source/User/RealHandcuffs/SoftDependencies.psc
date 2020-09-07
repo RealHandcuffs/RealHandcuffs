@@ -497,7 +497,14 @@ Bool Function IsDeviousDevicesGagged(Actor target)
 EndFunction
 
 ;
-; Check if a actor is a slave.
+; Check if an actor is in a AAF scene.
+;
+Bool Function IsInAafScene(Actor target)
+    Return AdvancedAnimationFrameworkAvailable && target.HasKeyword(AAF_ActorBusy)
+EndFunction
+
+;
+; Check if an actor is a slave.
 ;
 Bool Function IsSlave(Actor target)
     Return JustBusinessAvailable && target.IsInFaction(JBSlaveFaction)

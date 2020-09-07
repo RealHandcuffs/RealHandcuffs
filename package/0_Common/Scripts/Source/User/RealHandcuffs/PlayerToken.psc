@@ -576,7 +576,7 @@ Event OnKeyDown(int keyCode)
         ; ignore hotkey when menu is active
         Return
     EndIf
-    If (Library.SoftDependencies.AdvancedAnimationFrameworkAvailable && Target.HasKeyword(Library.SoftDependencies.AAF_ActorBusy))
+    If (Library.SoftDependencies.IsInAafScene(Target))
         ; ignore hotkey when running AAF animation
         Return
     EndIf

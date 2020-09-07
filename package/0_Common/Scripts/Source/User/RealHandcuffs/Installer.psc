@@ -23,7 +23,7 @@ String Property UpdatePendingState = "UpdatePending" AutoReadOnly ; 'update pend
 String Property DisabledState      = "Disabled"      AutoReadOnly ; 'disabled' state, will never change
 
 String Property StateVersion       = "V1"            AutoReadOnly ; internal state version string, will change when a new version requires different install/uninstall steps
-String Property DetailedVersion    = "0.4.8 alpha 2" AutoReadOnly ; user version string, will change with every new version
+String Property DetailedVersion    = "0.4.8 alpha 3" AutoReadOnly ; user version string, will change with every new version
 
 String Property InstalledDetailedVersion Auto ; currently installed detailed version
 String Property InstalledEdition Auto         ; currently installed edition

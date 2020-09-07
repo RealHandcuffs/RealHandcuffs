@@ -1039,11 +1039,10 @@ Function FixWeaponDrawn()
         StartTimer(3, WaitForConsciousness)
     Else
         ; For some unknown reason NPCs sometimes get stuck with drawn weapon animations.
-        ; It is hard to find a reliable way to solve this, currently the best way is to initialize the MT graph
+        ; It is hard to find a reliable way to solve this, currently the best way is to (re)initialize the MT graph.
         ; Only do this if we have not done it in the last thirty seconds
-        Utility.Wait(2) ; give HandleBoundHandsPackageChanged a chance to fix the situation before forcing bleedout
         Float realTime = Utility.GetCurrentRealTime()
-        If (Target.IsWeaponDrawn() && (_lastInitializeMtGraphTimestamp == 0 || (realTime - _lastInitializeMtGraphTimestamp) > 30))
+        If ((_lastInitializeMtGraphTimestamp == 0 || (realTime - _lastInitializeMtGraphTimestamp) > 30) && !Library.SoftDependencies.IsInAafScene(Target))
             _lastInitializeMtGraphTimestamp = realTime
             CancelTimer(WaitForConsciousness)
             CancelTimer(StartCheckingWeapon)
@@ -1096,7 +1095,7 @@ Function HandleBoundHandsPackageChanged()
         Float realTime = Utility.GetCurrentRealTime()
         If ((realTime - _lastKickAiTimestamp) > 1 && (currentPackage as RealHandcuffs:BoundHandsPackage) == None)
             ; moved away from a 'bound hands' package
-            If (!Target.HasKeyword(NoPackage) && Target.HasKeyword(BoundHands) && Library.RestrainedNpcs.Find(Target) >= 0)
+            If (!Target.HasKeyword(NoPackage) && Target.HasKeyword(BoundHands) && Library.RestrainedNpcs.Find(Target) >= 0 && !Library.SoftDependencies.IsInAafScene(Target))
                 ; but we expect such a package to be active
                 _lastKickAiTimestamp = realTime
                 If (Library.Settings.InfoLoggingEnabled)
