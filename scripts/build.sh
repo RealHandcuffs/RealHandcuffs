@@ -65,7 +65,15 @@ if [[ "$QUIET" == "" ]]
 then
   echo Copying files.
 fi
-cp -r package build
+cp -r -p package build
+VERSION=$(cat build/package/0_Common/Scripts/Source/User/RealHandcuffs/Installer.psc | sed -nr 's/^\s*String\s+Property\s+DetailedVersion\s*=\s*"([^"]+)"\s+AutoReadOnly\s*(;.*)$/\1/p')
+if [[ "$QUIET" == "" ]]
+then
+  echo "  Version: $VERSION"
+fi
+mv build/package/FOMod/info.xml build/package/FOMod/info.xml.old
+VERSION=$VERSION envsubst < build/package/FOMod/info.xml.old > build/package/FOMod/info.xml
+rm build/package/FOMod/info.xml.old
 
 # set up function to pack assets
 # $1: folder (must be folder in build/package, without the "build" part
@@ -134,7 +142,6 @@ if [[ "$QUIET" == "" ]]
 then
  echo "Creating archive:"
 fi
-VERSION=$(cat build/package/FOMod/info.xml | sed -nr 's/.*<Version>([^<]+)<\/Version>.*/\1/p')
 "$TOOL_7ZIP" a -t7z -mx=9 -mmt=off "build\RealHandcuffs.$VERSION.7z" ".\build\package\*" > /dev/null
 if [[ "$QUIET" == "" ]]
 then

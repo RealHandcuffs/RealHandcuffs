@@ -99,6 +99,9 @@ EndFunction
 ; Override: Unregister the registered actor from the marker.
 ;
 Function Unregister(Actor akActor)
+    If (akActor == _assignedActor)
+        AssignActor(None)
+    EndIf
     Bool isRegistered = (akActor == GetRegisteredActor())
     Parent.Unregister(akActor)
     If (isRegistered )

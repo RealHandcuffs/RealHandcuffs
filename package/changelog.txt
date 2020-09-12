@@ -443,5 +443,15 @@ various fixes and improvements
 Version 0.4.7
 =============
 compatibility with WorkshopFramework 2.0.0
-- change function used to detect assignment to prisoner mats to be compatible with WorkshopFramework 2
+- change function used to detect assignment to prisoner mats to be compatible with WorkshopFramework 2.0.0
 - some tweaks to code that tries to keep captives in place when returning to a settlement
+
+Version 0.4.8
+=============
+changes to improve compatibility with AAF
+- use special idle action instead of bleedout when forcing NPCs to stow weapons
+- improve general handling of actors who are part of AAF scenes
+- make sure no packages are applied to AAF doppelganger (using RH_NoPackage)
+- check if NPCs are delete in OnUnload event and remove them from the managed NPCs if they are
+- check for deleted NPCs when loading the game and remove them from the managed NPCs (there is no event when actors are deleted)
+- fix: unassign companions who are assigned to prisoner mat when told to follow the player again

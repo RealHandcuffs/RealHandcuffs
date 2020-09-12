@@ -138,6 +138,7 @@ EndGroup
 ;
 Group AdvancedAnimationFramework
     Keyword Property AAF_ActorBusy Auto
+    ActorBase Property AAF_Doppelganger Auto
 EndGroup
 
 ;
@@ -362,11 +363,14 @@ Bool Function GetAdvancedAnimationFrameworkForms()
     Quest aafMainQuest = Game.GetFormFromFile(0x000F99, AdvancedAnimationFramework) as Quest
     If (aafMainQuest == None)
         AAF_ActorBusy = None
+        AAF_Doppelganger = None
         Return False
     EndIf
     ScriptObject aafApi = aafMainQuest.CastAs("AAF:AAF_API")
     AAF_ActorBusy = aafApi.GetPropertyValue("AAF_ActorBusy") as Keyword
-    Return AAF_ActorBusy != None
+    ScriptObject aafMainQuestScript = aafMainQuest.CastAs("AAF:AAF_MainQuestScript")
+    AAF_Doppelganger = aafMainQuestScript.GetPropertyValue("AAF_Doppelganger") as ActorBase
+    Return aafApi != None && AAF_ActorBusy != None && aafMainQuestScript != None && AAF_Doppelganger != None
 EndFunction
 
 ;
@@ -493,7 +497,14 @@ Bool Function IsDeviousDevicesGagged(Actor target)
 EndFunction
 
 ;
-; Check if a actor is a slave.
+; Check if an actor is in a AAF scene.
+;
+Bool Function IsInAafScene(Actor target)
+    Return AdvancedAnimationFrameworkAvailable && target.HasKeyword(AAF_ActorBusy)
+EndFunction
+
+;
+; Check if an actor is a slave.
 ;
 Bool Function IsSlave(Actor target)
     Return JustBusinessAvailable && target.IsInFaction(JBSlaveFaction)
