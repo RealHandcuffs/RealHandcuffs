@@ -64,6 +64,7 @@ Function Initialize(Actor myTarget)
     RegisterForRemoteEvent(myTarget, "OnCommandModeCompleteCommand")
     RegisterForRemoteEvent(myTarget, "OnCommandModeExit")
     RegisterForRemoteEvent(myTarget, "OnDeath") 
+    RegisterForRemoteEvent(myTarget, "OnUnload") 
     RegisterForRemoteEvent(myTarget, "OnWorkshopNPCTransfer")
     WorkshopNpcScript workshopNpc = myTarget as WorkshopNpcScript
     If (workshopNpc != None)
@@ -102,6 +103,7 @@ Function Uninitialize()
         UnregisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
         UnregisterForRemoteEvent(Target, "OnCommandModeExit")
         UnregisterForRemoteEvent(Target, "OnDeath")
+        UnregisterForRemoteEvent(Target, "OnUnload")
         UnregisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
         If (Library.RestrainedNpcs.Find(Target) >= 0)
             Library.RestrainedNpcs.RemoveRef(Target)
@@ -220,6 +222,7 @@ Function RefreshEventRegistrations()
     UnregisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
     UnregisterForRemoteEvent(Target, "OnCommandModeExit")
     UnregisterForRemoteEvent(Target, "OnDeath")
+    UnregisterForRemoteEvent(Target, "OnUnload")
     UnregisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
     Parent.RefreshEventRegistrations()
     RegisterForRemoteEvent(Target, "OnCommandModeEnter")
@@ -227,6 +230,7 @@ Function RefreshEventRegistrations()
     RegisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
     RegisterForRemoteEvent(Target, "OnCommandModeExit")
     RegisterForRemoteEvent(Target, "OnDeath") 
+    RegisterForRemoteEvent(Target, "OnUnload") 
     RegisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
     If (workshopNpc != None)
         RegisterForCustomEvent(WorkshopParent, "WorkshopActorAssignedToWork")
@@ -511,6 +515,20 @@ Event Actor.OnDeath(Actor sender, Actor akKiller)
     Uninitialize()
     If (Library.Settings.InfoLoggingEnabled)
         RealHandcuffs:Log.Info("Destroyed token for " + RealHandcuffs:Log.FormIdAsString(oldTarget) + " " + oldTarget.GetDisplayName(), Library.Settings)
+    EndIf
+EndEvent
+
+;
+; Event handler for unload of the actor.
+;
+Event ObjectReference.OnUnload(ObjectReference sender)
+    ; destoy the token if actor is deleted
+    Actor oldTarget = Target
+    If (oldTarget.IsDeleted())
+        Uninitialize()
+        If (Library.Settings.InfoLoggingEnabled)
+            RealHandcuffs:Log.Info("Destroyed token for " + RealHandcuffs:Log.FormIdAsString(oldTarget) + " " + oldTarget.GetDisplayName(), Library.Settings)
+        EndIf
     EndIf
 EndEvent
 

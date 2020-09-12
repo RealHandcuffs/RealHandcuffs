@@ -449,8 +449,9 @@ compatibility with WorkshopFramework 2.0.0
 Version 0.4.8
 =============
 changes to improve compatibility with AAF
-- use special idle action instead of bleedout to force NPCs to stow weapons
+- use special idle action instead of bleedout when forcing NPCs to stow weapons
 - improve general handling of actors who are part of AAF scenes
-- put RH_NoPackage keyword on AAF doppelganger to prevent application of RH packages even outside of scene
-- make sure deleted NPCs (e.g. old AFF doppelganger) are cleaned from the RefCollectionAlias on game load (there is no event when actors are deleted)
+- make sure no packages are applied to AAF doppelganger (using RH_NoPackage)
+- check if NPCs are delete in OnUnload event and remove them from the managed NPCs if they are
+- check for deleted NPCs when loading the game and remove them from the managed NPCs (there is no event when actors are deleted)
 - fix: unassign companions who are assigned to prisoner mat when told to follow the player again
