@@ -76,5 +76,20 @@ Event OnMenuItemRun(int auiMenuItemID, ObjectReference akTerminalRef)
         ; enter trigger settings subterminal
     ElseIf (auiMenuItemID == 73 || auiMenuItemID == 74)
         ; enter torture mode subterminal
+    ElseIf (auiMenuItemID == 75)
+        ; initiate connection
+        RealHandcuffs:ShockCollarBase collar = TerminalData.RegisteredShockCollar
+        If (collar != None)
+            Actor player = Game.GetPlayer()
+            Actor collarTarget = collar.SearchCurrentTarget()
+            If (collarTarget == player || (collarTarget != None && player.GetDistance(collarTarget) <= 256))
+                collar.CopyShockCollarDataToTerminalData()
+                TerminalData.RegisterForUpdateOnNextTerminalMenuClose()
+                If (Library.Settings.InfoLoggingEnabled)
+                    RealHandcuffs:Log.Info("Connecting to collar of " + RealHandcuffs:Log.FormIdAsString(collarTarget) + " " + collarTarget.GetDisplayName(), Library.Settings)
+                EndIf
+            EndIf
+        EndIf
+        Utility.WaitMenuMode(1) ; wait a short moment to allow the player to read the message before terminal closes
     EndIf
 EndEvent

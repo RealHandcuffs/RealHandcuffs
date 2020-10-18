@@ -599,44 +599,7 @@ EndFunction
 ;
 Int Function ShowTerminalOnPipboy()
     ; copy shock collar data to terminal data
-    TerminalData.Reset()
-    If (HasKeyword(Library.Resources.MarkTwoFirmware))
-        TerminalData.Flavor = TerminalData.MarkTwoFirmware
-    ElseIf (HasKeyword(Library.Resources.MarkThreeFirmware))
-        TerminalData.Flavor = TerminalData.MarkThreeFirmware
-    ElseIf (HasKeyword(Library.Resources.HackedFirmware))
-        TerminalData.Flavor = TerminalData.HackedFirmware
-    Else
-        RealHandcuffs:Log.Error("Unknown firmware detected.", Library.Settings)
-    EndIf
-    TerminalData.SetupPin(GetNumberOfAccessCodeDigits(), GetAccessCode(), ActionOnFailedAccessCodeEntry)
-    Float lockoutTime = GetRemainingTerminalLockoutTime()
-    If (lockoutTime > 0)
-        TerminalData.RemainingLockoutTime = lockoutTime
-        TerminalData.PinInputState = TerminalData.PinInputFailed
-    EndIf
-    Actor target = SearchCurrentTarget()
-    If (target != None)
-        TerminalData.CollarEnabled = true
-    EndIf
-    If (HasElectronicLock())
-        If (target != None)
-            TerminalData.ElectronicLockState = TerminalData.ElectronicLockLocked
-        Else
-            TerminalData.ElectronicLockState = TerminalData.ElectronicLockUnlocked
-        EndIf
-    Else
-        TerminalData.ElectronicLockState = TerminalData.NoElectronicLock
-    EndIf
-    Int supportedTriggerModes = GetSupportedTriggerModes()
-    If (supportedTriggerModes > 0)
-        TerminalData.SupportedTriggerModes = supportedTriggerModes
-        TerminalData.TriggerMode = GetTriggerMode()
-    EndIf
-    If (GetSupportsTortureMode())
-        TerminalData.SupportsTortureMode = True
-        TerminalData.TortureModeFrequency = GetTortureModeFrequency()
-    EndIf
+    Actor target = CopyShockCollarDataToTerminalData()
     ; close PipboyMenu/ContainerMenu if they are open
     If (UI.IsMenuOpen("PipboyMenu"))
         UI.CloseMenu("PipboyMenu")
@@ -646,8 +609,7 @@ Int Function ShowTerminalOnPipboy()
         Utility.Wait(0.8)
     EndIf
     Bool restoreThirdPersonCamera = false
-    Actor player = Game.GetPlayer()
-    If (!player.GetAnimationVariableBool("IsFirstPerson"))
+    If (!Game.GetPlayer().GetAnimationVariableBool("IsFirstPerson"))
         Game.ForceFirstPerson()
         restoreThirdPersonCamera = true
         Utility.Wait(0.1)
@@ -690,6 +652,65 @@ Int Function ShowTerminalOnPipboy()
         Game.ForceThirdPerson()
     EndIf
     ; copy terminal data to shock collar
+    Return UpdateShockCollarFromTerminalData(target)
+EndFunction
+
+;
+; Copy all relevant data from the shock collar to the terminal script.
+; This is necessary before opening the shock collar terminal.
+; Returns the actor currently wearing the shock collar.
+;
+Actor Function CopyShockCollarDataToTerminalData()
+    TerminalData.Reset()
+    TerminalData.RegisteredShockCollar = Self
+    If (HasKeyword(Library.Resources.MarkTwoFirmware))
+        TerminalData.Flavor = TerminalData.MarkTwoFirmware
+    ElseIf (HasKeyword(Library.Resources.MarkThreeFirmware))
+        TerminalData.Flavor = TerminalData.MarkThreeFirmware
+    ElseIf (HasKeyword(Library.Resources.HackedFirmware))
+        TerminalData.Flavor = TerminalData.HackedFirmware
+    Else
+        RealHandcuffs:Log.Error("Unknown firmware detected.", Library.Settings)
+    EndIf
+    TerminalData.SetupPin(GetNumberOfAccessCodeDigits(), GetAccessCode(), ActionOnFailedAccessCodeEntry)
+    Float lockoutTime = GetRemainingTerminalLockoutTime()
+    If (lockoutTime > 0)
+        TerminalData.RemainingLockoutTime = lockoutTime
+        TerminalData.PinInputState = TerminalData.PinInputFailed
+    EndIf
+    Actor target = SearchCurrentTarget()
+    If (target != None)
+        TerminalData.CollarEnabled = true
+    EndIf
+    If (HasElectronicLock())
+        If (target != None)
+            TerminalData.ElectronicLockState = TerminalData.ElectronicLockLocked
+        Else
+            TerminalData.ElectronicLockState = TerminalData.ElectronicLockUnlocked
+        EndIf
+    Else
+        TerminalData.ElectronicLockState = TerminalData.NoElectronicLock
+    EndIf
+    Int supportedTriggerModes = GetSupportedTriggerModes()
+    If (supportedTriggerModes > 0)
+        TerminalData.SupportedTriggerModes = supportedTriggerModes
+        TerminalData.TriggerMode = GetTriggerMode()
+    EndIf
+    If (GetSupportsTortureMode())
+        TerminalData.SupportsTortureMode = True
+        TerminalData.TortureModeFrequency = GetTortureModeFrequency()
+    EndIf
+    Return target
+EndFunction    
+    
+;
+; Update the shock collar from the terminal data. This should be called after showing the terminal.
+; Returns 1 if the collar was unequipped as a result, 2 if the collar will trigger as a result, 0 otherwise
+;
+Int Function UpdateShockCollarFromTerminalData(Actor target)
+    If (target != None && Library.Settings.InfoLoggingEnabled)
+        RealHandcuffs:Log.Info("Updating collar of " + RealHandcuffs:Log.FormIdAsString(target) + " " + target.GetDisplayName(), Library.Settings)
+    EndIf
     If (TerminalData.RemainingLockoutTime > 0)
         StartTerminalLockout(TerminalData.RemainingLockoutTime)
     Else
@@ -701,22 +722,29 @@ Int Function ShowTerminalOnPipboy()
         SetTriggerMode(TerminalData.TriggerMode)
         If (target != None && TerminalData.ElectronicLockState == TerminalData.ElectronicLockUnlocked)
             ForceUnequip()
+            TerminalData.Reset()
             Return 1
         EndIf
         If (TerminalData.RestartTortureMode)
             SetTortureModeFrequency(TerminalData.TortureModeFrequency)
             RestartTortureMode(target)
+            TerminalData.Reset()
+            TerminalData.RegisteredShockCollar = Self
             Return 2
         EndIf
     EndIf
     If (TerminalData.TriggerShock)
         If (target == None)
-            Trigger(player, true)
+            Trigger(Game.GetPlayer(), true)
         Else
             Trigger(target, true)
         EndIf
+        TerminalData.Reset()
+        TerminalData.RegisteredShockCollar = Self
         Return 2
     EndIf
+    TerminalData.Reset()
+    TerminalData.RegisteredShockCollar = Self
     Return 0
 EndFunction
 

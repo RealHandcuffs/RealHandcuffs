@@ -6,6 +6,7 @@ Scriptname RealHandcuffs:Installer extends ReferenceAlias
 RealHandcuffs:Library Property Library Auto Const Mandatory
 RealHandcuffs:McmInteraction Property McmInteraction Auto Const Mandatory
 RealHandcuffs:LeveledListInjector Property LeveledListInjector Auto Const Mandatory
+RealHandcuffs:ShockCollarTerminalData Property TerminalData Auto Const Mandatory
 
 Perk Property ChangePose Auto Const Mandatory
 Perk Property InteractWithKnockedOut Auto Const Mandatory
@@ -273,6 +274,7 @@ State V1
             RegisterForRemoteEvent(MQ102, "OnQuestShutdown")
         EndIf
         LeveledListInjector.UpdateLeveledLists()
+        TerminalData.Reset()
         ; maintain or create player token
         Actor player = Game.GetPlayer()
         RealHandcuffs:ActorToken token = Library.TryGetActorToken(player)

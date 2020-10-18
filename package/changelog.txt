@@ -456,7 +456,7 @@ changes to improve compatibility with AAF
 - check for deleted NPCs when loading the game and remove them from the managed NPCs (there is no event when actors are deleted)
 - fix: unassign companions who are assigned to prisoner mat when told to follow the player again
 
-Version 0.4.9 TODO
+Version 0.4.9 (Beta!)
 =============
 various small improvements, most requested in support thread
 - Add "Punishment Mode" to Mark III Shock Collar Firmware - this is the same as "T0rture M0de" in Hacked Firmware
