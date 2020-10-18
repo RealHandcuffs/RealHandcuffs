@@ -846,7 +846,7 @@ EndFunction
 ; Get whether torture mode is supported.
 ;
 Bool Function GetSupportsTortureMode()
-    Return HasKeyword(HasTortureMode)
+    Return HasKeyword(HasTortureMode) && !HasKeyword(Library.Resources.Explosive)
 EndFunction
 
 ;

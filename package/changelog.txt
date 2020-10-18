@@ -459,8 +459,10 @@ changes to improve compatibility with AAF
 Version 0.4.9 TODO
 =============
 various small improvements, most requested in support thread
-- Upgrade LLFP Community plugin to version 39. WARNING: Upgrading LLFP will require F4SE 0.6.21.
-- Add "Punishment Mode" to Mark III Firmware (this is the same as "T0rture M0de" in Hacked Firmware)
+- Add "Punishment Mode" to Mark III Shock Collar Firmware - this is the same as "T0rture M0de" in Hacked Firmware
+- Disable T0rture M0de / Punishment Mode for explosive collars
+- Shock collars will now have a yellow "shock" icon instead of the default yellow "explosive" icon
 - Fix: Remove leftover message when player gets knocked down by shocks.
-- ThirdPartyApi: Fix: StartBoundWaitState will now correctly handle playEnterAnimation=false and/or makePlayerPosable=false.
+- Upgrade LLFP Community plugin to version 39. WARNING: The new LLFP Communit plugin requires F4SE 0.6.21.
 - ThirdPartApi: Add functions StartTortureMode, StopTortureMode, StartTortureModeOnActor, StopTortureModeOnActor
+- ThirdPartyApi: Fix: StartBoundWaitState will now correctly handle playEnterAnimation=false and/or makePlayerPosable=false.
