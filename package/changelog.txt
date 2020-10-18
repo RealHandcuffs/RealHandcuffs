@@ -463,7 +463,7 @@ various small improvements, most requested in support thread
 - Disable T0rture M0de / Punishment Mode for explosive collars
 - Shock collars will now have a yellow "shock" icon instead of the default yellow "explosive" icon
 - Fix: Temporarily disable WorkshopFramework alternate activation when player is bound
-- Fix: Remove leftover message when player gets knocked down by shocks.
-- Upgrade LLFP Community plugin to version 39. WARNING: The new LLFP Communit plugin requires F4SE 0.6.21.
+- Fix: Remove leftover message when player gets knocked down by shocks
+- Upgrade LLFP Community plugin to version 39. WARNING: The new LLFP Communit plugin requires F4SE 0.6.21
 - ThirdPartApi: Add functions StartTortureMode, StopTortureMode, StartTortureModeOnActor, StopTortureModeOnActor
-- ThirdPartyApi: Fix: StartBoundWaitState will now correctly handle playEnterAnimation=false and/or makePlayerPosable=false.
+- ThirdPartyApi: Fix: StartBoundWaitState will now correctly handle playEnterAnimation=false and/or makePlayerPosable=false
