@@ -29,6 +29,7 @@ Group Plugins
     String Property AdvancedAnimationFramework = "AAF.esm" AutoReadOnly
     String Property SSConqueror                = "SimSettlements_XPAC_Conqueror.esp" AutoReadOnly
     String Property CanarySaveFileMonitor      = "CanarySaveFileMonitor.esl" AutoReadOnly
+    String Property WorkshopFramework          = "WorkshopFramework.esm" AutoReadOnly
 EndGroup
 
 ;
@@ -44,6 +45,7 @@ Group AvailablePlugins
     Bool Property KnockoutFrameworkAvailable Auto
     Bool Property AdvancedAnimationFrameworkAvailable Auto
     Bool Property SSConquerorAvailable Auto
+    Bool Property WorkshopFrameworkAvailable Auto
 EndGroup
 
 ;
@@ -159,6 +161,13 @@ Group CanarySaveFileMonitor
 EndGroup
 
 ;
+; Forms used from Workshop Framework
+;
+Group WorkshopFramework
+    GlobalVariable Property WSFW_AlternateActivation_Workshop Auto
+EndGroup
+
+;
 ; Refresh the third party dependencies when the game is loaded.
 ;
 Function RefreshOnGameLoad()
@@ -175,6 +184,7 @@ Function RefreshOnGameLoad()
     AdvancedAnimationFrameworkAvailable = GetAdvancedAnimationFrameworkForms()
     SSConquerorAvailable = GetSSConquerorForms()
     Bool CanarySaveFileMonitorAvailable = CheckForCanary()
+    WorkshopFrameworkAvailable = GetWorkshopFrameworkForms()
     SoftDependenciesLoading = false
     If (Library.Settings.InfoLoggingEnabled)
        String list = ""
@@ -207,6 +217,9 @@ Function RefreshOnGameLoad()
         EndIf
         If (CanarySaveFileMonitorAvailable)
             list = AddToList(list, CanarySaveFileMonitor)
+        EndIf
+        If (WorkshopFrameworkAvailable)
+            list = AddToList(list, WorkshopFramework)
         EndIf
         RealHandcuffs:Log.Info("Available soft dependencies: " + list, Library.Settings)
     EndIf
@@ -402,6 +415,14 @@ Bool Function CheckForCanary()
     kArgs[1] = "RealHandcuffs:SoftDependencies" ; must be the same as the script name!
     Utility.CallGlobalFunction("Canary:API", "MonitorForDataLoss", kArgs)
     Return true
+EndFunction
+
+;
+; Get the forms used from Workshop Framework
+;
+Bool Function GetWorkshopFrameworkForms()
+    WSFW_AlternateActivation_Workshop = Game.GetFormFromFile(0x015132, WorkshopFramework) as GlobalVariable
+    Return WSFW_AlternateActivation_Workshop != None
 EndFunction
 
 ;
