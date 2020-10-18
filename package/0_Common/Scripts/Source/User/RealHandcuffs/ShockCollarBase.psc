@@ -6,6 +6,7 @@ Scriptname RealHandcuffs:ShockCollarBase extends RealHandcuffs:RestraintBase
 RealHandcuffs:ShockCollarTerminalData Property TerminalData Auto Const Mandatory
 
 FormList Property ShockCollarTerminatedSceneQuests Auto Const Mandatory
+Keyword Property HasTortureMode Auto Const Mandatory
 Projectile Property ExplosiveCollarProjectile Auto Const Mandatory
 Sound Property MineTickLoop Auto Const Mandatory
 
@@ -845,7 +846,7 @@ EndFunction
 ; Get whether torture mode is supported.
 ;
 Bool Function GetSupportsTortureMode()
-    Return False
+    Return HasKeyword(HasTortureMode)
 EndFunction
 
 ;

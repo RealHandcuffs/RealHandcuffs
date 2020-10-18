@@ -42,7 +42,6 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
             If (_cantBeKnockedOutKeywordAdded)
                 ; prevent knockout framework from interfering
                 akTarget.AddKeyword(Library.SoftDependencies.KFActorCantBeKnockedOutKeyword)
-                _cantBeKnockedOutKeywordAdded  = true
                 Utility.Wait(1.0)
             EndIf
             Bool noBleedoutRecoveryCleared = akTarget.GetNoBleedoutRecovery()

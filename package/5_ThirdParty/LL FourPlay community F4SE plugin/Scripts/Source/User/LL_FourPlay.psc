@@ -4,20 +4,20 @@ Scriptname LL_FourPlay Native Hidden
 ;	Shared community library of utility function from LoverLab distributed with FourPlay resources as a F4SE plugin with sources included
 ;
 
-;	Version 35 for runtime 1.10.138	2019 11 01 by jaam and Chosen Clue and EgoBallistic
+;	Version 39 for runtime 1.10.163	2020 09 24 by jaam and Chosen Clue and EgoBallistic
 
-;	Runtime version: This file should be runtime neutral. The accompanying F4SE plugin (ll_fourplay_1_10_138.dll) is NOT!
+;	Runtime version: This file should be runtime neutral. The accompanying F4SE plugin (ll_fourplay_1_10_163.dll) is NOT!
 ;		You need to always use a plugin corresponding with the game version you play.
 ;		Plugin should be available just after F4SE has been updated for the modified runtime.
 ;		Runtime versions lower than 1.10.138 will no longer be supported.
-;		Written and tested against F4SE 0.6.17. You should not use an older version of F4SE.
+;		Written and tested against F4SE 0.6.21. You should not use an older version of F4SE.
 ;
 ;
 ;
 
 ; Returns the version of this script (when someone has not forgotten to update it :) )
 Float Function GetLLFPScriptVersion() global
-	return 35.0
+	return 39.0
 endFunction
 
 ; Returns the version of the plugin and servers to verify it is properly installed.
@@ -138,6 +138,11 @@ string[] Function StringSplit(string theString, string delimiter = ",") native g
 ;	Opposite of StringSplit.
 string Function StringJoin(string[] theStrings, string delimiter = ",") native global
 
+;	Converts an integer of any base to a hexadecimal string representation
+string Function IntToHexString(Int num) native global
+
+;	Converts a hexadecimal string to an integer
+Int Function HexStringToInt(String theString) native global
 
 ;
 ;	Array functions
@@ -223,6 +228,9 @@ bool Function ActorBaseIsClean(Actor akActor) native global
 ;	Return the WNAM ARMO of either the actor base or the actor's race
 Form Function GetActorBaseSkinForm(Actor akActor) native global
 
+;	Copy the base skin of one actor onto another as a skin override, similar to what LooksMenu does
+bool Function CopyActorBaseskinForm(Actor akSourceActor, Actor akDestActor) native global
+
 ;	MFG morph function provided by EgoBallistic
 
 ;   Apply a MFG Morph to the actor
@@ -255,6 +263,17 @@ bool Function MfgApplyMorphSet(Actor akActor, int[] morphIDs, int[] values) nati
 ;TBT;	bool Function ObjectReferenceGetCollision(ObjectReference akObject) native global
 
 ;
+;	Cell Functions
+;   ==============
+;
+
+;	Returns the number of references of type formType in cell. Use GetFormType() below for formType values. If formType is 0 this returns the count of all refs in the cell.
+Int Function GetNumRefsInCell(Cell akCell, Int formType) native global
+
+;   Returns nth reference of type formType in cell.  If formType is 0 this returns the nth reference of any type.
+ObjectReference Function GetNthRefInCell(Cell akCell, Int index, Int formType) native global
+
+;
 ;	Misc. Form functions
 ;	====================
 ;
@@ -270,6 +289,12 @@ Int Function OriginalPluginID(Form akForm) native global
 
 ; Returns whether a form is in a given leveled item list
 bool Function GetInLeveledItem(Leveleditem akList, Form akForm) native global
+
+; Return a form's record flags
+Int Function GetRecordFlags(Form akForm) native global
+
+; Return a form's formType
+Int Function GetFormType(Form akForm) native global
 
 ;
 ;	Misc functions

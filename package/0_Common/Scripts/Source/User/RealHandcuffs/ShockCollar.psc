@@ -51,10 +51,3 @@ Int Function GetSupportedTriggerModes()
     EndIf
     Return TerminalData.SimpleTrigger
 EndFunction
-
-;
-; Overrride: Get whether torture mode is supported.
-;
-Bool Function GetSupportsTortureMode()
-	Return HasKeyword(Library.Resources.HackedFirmware)
-EndFunction

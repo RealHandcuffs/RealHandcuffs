@@ -452,6 +452,15 @@ changes to improve compatibility with AAF
 - use special idle action instead of bleedout when forcing NPCs to stow weapons
 - improve general handling of actors who are part of AAF scenes
 - make sure no packages are applied to AAF doppelganger (using RH_NoPackage)
-- check if NPCs are delete in OnUnload event and remove them from the managed NPCs if they are
+- check if NPCs are deleted in OnUnload event and remove them from the managed NPCs if they are
 - check for deleted NPCs when loading the game and remove them from the managed NPCs (there is no event when actors are deleted)
 - fix: unassign companions who are assigned to prisoner mat when told to follow the player again
+
+Version 0.4.9 TODO
+=============
+various small improvements, most requested in support thread
+- Upgrade LLFP Community plugin to version 39. WARNING: Upgrading LLFP will require F4SE 0.6.21.
+- Add "Punishment Mode" to Mark III Firmware (this is the same as "T0rture M0de" in Hacked Firmware)
+- Fix: Remove leftover message when player gets knocked down by shocks.
+- ThirdPartyApi: Fix: StartBoundWaitState will now correctly handle playEnterAnimation=false and/or makePlayerPosable=false.
+- ThirdPartApi: Add functions StartTortureMode, StopTortureMode, StartTortureModeOnActor, StopTortureModeOnActor

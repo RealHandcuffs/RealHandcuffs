@@ -87,8 +87,8 @@
       <optionalFileGroups order="Explicit">
         <group name="Dependency" type="SelectAny">
           <plugins order="Explicit">
-            <plugin name="LLFP Plugin v38">
-              <description><![CDATA[<h4>LL FourPlay Community F4SE Plugin v38</h4><p>Real Handcuffs requires the LLFP F4SE plugin, v28 or later. Select this option to install LLFP F4SE plugin v38 (for runtime 1.10.163). You can skip this step if you have the latest AAF version. Also skip this step if you want to manually control the version of the LLFP F4SE plugin, for example if have an older Fallout 4 runtime.</p>]]></description>
+            <plugin name="LLFP Plugin v39">
+              <description><![CDATA[<h4>LL FourPlay Community F4SE Plugin v39</h4><p>Real Handcuffs requires the LLFP F4SE plugin, v28 or later. Select this option to install LLFP F4SE plugin v39 (for runtime 1.10.163). You can skip this step if you have the latest AAF version. Also skip this step if you want to manually control the version of the LLFP F4SE plugin, for example if have an older Fallout 4 runtime.</p>]]></description>
               <conditionFlags>
                 <flag name="install_llfp">on</flag>
               </conditionFlags>
