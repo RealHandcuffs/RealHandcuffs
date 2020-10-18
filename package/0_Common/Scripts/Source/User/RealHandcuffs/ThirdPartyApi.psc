@@ -34,7 +34,7 @@ EndFunction
 ; 8             0.4 RC 1
 ; 9             0.4.4 beta 1
 ; 10            0.4.4 RC 1
-; 11            0.4.9
+; 11            0.4.9 beta 1
 ;
 Int Function ApiVersion()
     Return 10
