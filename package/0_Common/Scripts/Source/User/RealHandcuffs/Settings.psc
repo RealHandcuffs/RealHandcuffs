@@ -61,6 +61,7 @@ EndGroup
 ;
 Group ShockCollars
     Int Property ShockLethality Auto                    ; 0: potentially lethal, 1: only for non-essential actors, 2: always non-lethal
+    Int Property PipboyTerminalMode Auto                ; 0: auto-select, 1: open pip-boy directly, 2: use holodisk manually
     Bool Property AddCollarsToJBSlaves Auto
     Float Property ShockCollarJBSubmissionWeight Auto   ; 0.0 to 3.0
     Int Property CastJBMarkSpellOnTaserVictims Auto     ; 0: yes, 1: only when causing exhaustion, 2: no
@@ -175,10 +176,14 @@ EndFunction
 ; Apply new shock collar settings. Returns true if any settings have been modified.
 ; This will not fire OnSettingsChanged, the caller has to call FireSettingsChangedEvent if true was returned!
 ; 
-Bool Function ApplyShockCollarSettings(Int newShockLethality, Bool newAddCollarsToJBSlaves, Float newShockCollarJBSubmissionWeight, Int newCastJBMarkSpellOnTaserVictims)
+Bool Function ApplyShockCollarSettings(Int newShockLethality, Int newPipboyTerminalMode, Bool newAddCollarsToJBSlaves, Float newShockCollarJBSubmissionWeight, Int newCastJBMarkSpellOnTaserVictims)
     Bool changed = false
     If (SettingsUnlocked && ShockLethality != newShockLethality)
         ShockLethality = newShockLethality
+        changed = true
+    EndIf
+    If (SettingsUnlocked && PipboyTerminalMode != newPipboyTerminalMode)
+        PipboyTerminalMode = newPipboyTerminalMode
         changed = true
     EndIf
     If (SettingsUnlocked && AddCollarsToJBSlaves != newAddCollarsToJBSlaves)
@@ -293,10 +298,11 @@ EndFunction
 ;
 Bool Function RestoreDefaultShockCollarSettings()
     Int defShockLethality = 0
+    Int defPipboyTerminalMode = 0
     Bool defAddCollarsToJBSlaves = true
     Float defShockCollarJBSubmissionWeight = 1.0
     Int defCastJBMarkSpellOnTaserVictims = 1
-    Bool changed = ApplyShockCollarSettings(defShockLethality, defAddCollarsToJBSlaves, defShockCollarJBSubmissionWeight, defCastJBMarkSpellOnTaserVictims)
+    Bool changed = ApplyShockCollarSettings(defShockLethality, defPipboyTerminalMode, defAddCollarsToJBSlaves, defShockCollarJBSubmissionWeight, defCastJBMarkSpellOnTaserVictims)
     If (changed)
         RealHandcuffs:Log.Info("Default shock collar settings restored.", Self)
     EndIf
@@ -380,10 +386,11 @@ EndFunction
 ;
 Bool Function LoadMcmShockCollarSettings()
     Int mcmShockLethality = MCM.GetModSettingInt("RealHandcuffs", "iShockLethality:ShockCollars")
+    Int mcmPipboyTerminalMode = MCM.GetModSettingInt("RealHandcuffs", "iPipboyTerminalMode:ShockCollars")
     Bool mcmAddCollarsToJBSlaves = MCM.GetModSettingBool("RealHandcuffs", "bAddCollarsToJBSlaves:ShockCollars")
     Float mcmShockCollarJBSubmissionWeight = MCM.GetModSettingFloat("RealHandcuffs", "fShockCollarJBSubmissionWeight:ShockCollars")
     Int mcmCastJBMarkSpellOnTaserVictims = MCM.GetModSettingInt("RealHandcuffs", "iCastJBMarkSpellOnTaserVictims:ShockCollars")
-    If (ApplyShockCollarSettings(mcmShockLethality, mcmAddCollarsToJBSlaves, mcmShockCollarJBSubmissionWeight, mcmCastJBMarkSpellOnTaserVictims))
+    If (ApplyShockCollarSettings(mcmShockLethality, mcmPipboyTerminalMode, mcmAddCollarsToJBSlaves, mcmShockCollarJBSubmissionWeight, mcmCastJBMarkSpellOnTaserVictims))
         RealHandcuffs:Log.Info("Shock collar settings changed from MCM.", Self)
         Return true
     EndIf
@@ -475,6 +482,10 @@ Bool Function SaveMcmShockCollarSettings()
     Bool changed = false
     If (SettingsUnlocked && MCM.GetModSettingBool("RealHandcuffs", "iShockLethality:ShockCollars") != ShockLethality)
         MCM.SetModSettingInt("RealHandcuffs", "iShockLethality:ShockCollars", ShockLethality)
+        changed = true
+    EndIf
+    If (SettingsUnlocked && MCM.GetModSettingInt("RealHandcuffs", "iPipboyTerminalMode:ShockCollars") != PipboyTerminalMode)
+        MCM.SetModSettingInt("RealHandcuffs", "iPipboyTerminalMode:ShockCollars", PipboyTerminalMode)
         changed = true
     EndIf
     If (SettingsUnlocked && MCM.GetModSettingBool("RealHandcuffs", "bAddCollarsToJBSlaves:ShockCollars") != AddCollarsToJBSlaves)

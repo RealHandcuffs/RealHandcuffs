@@ -30,6 +30,7 @@ Group Plugins
     String Property SSConqueror                = "SimSettlements_XPAC_Conqueror.esp" AutoReadOnly
     String Property CanarySaveFileMonitor      = "CanarySaveFileMonitor.esl" AutoReadOnly
     String Property WorkshopFramework          = "WorkshopFramework.esm" AutoReadOnly
+    String Property PipPad                     = "PIP-Pad.esp" AutoReadOnly
 EndGroup
 
 ;
@@ -46,6 +47,7 @@ Group AvailablePlugins
     Bool Property AdvancedAnimationFrameworkAvailable Auto
     Bool Property SSConquerorAvailable Auto
     Bool Property WorkshopFrameworkAvailable Auto
+    Bool Property PipPadAvailable Auto
 EndGroup
 
 ;
@@ -185,6 +187,7 @@ Function RefreshOnGameLoad()
     SSConquerorAvailable = GetSSConquerorForms()
     Bool CanarySaveFileMonitorAvailable = CheckForCanary()
     WorkshopFrameworkAvailable = GetWorkshopFrameworkForms()
+    PipPadAvailable = GetPipPadForms()
     SoftDependenciesLoading = false
     If (Library.Settings.InfoLoggingEnabled)
        String list = ""
@@ -220,6 +223,9 @@ Function RefreshOnGameLoad()
         EndIf
         If (WorkshopFrameworkAvailable)
             list = AddToList(list, WorkshopFramework)
+        EndIf
+        If (PipPadAvailable)
+            list = AddToList(list, PipPad)
         EndIf
         RealHandcuffs:Log.Info("Available soft dependencies: " + list, Library.Settings)
     EndIf
@@ -423,6 +429,13 @@ EndFunction
 Bool Function GetWorkshopFrameworkForms()
     WSFW_AlternateActivation_Workshop = Game.GetFormFromFile(0x015132, WorkshopFramework) as GlobalVariable
     Return WSFW_AlternateActivation_Workshop != None
+EndFunction
+
+;
+; Get the forms used from Pip Pad
+;
+Bool Function GetPipPadForms()
+    Return Game.IsPluginInstalled(PipPad)
 EndFunction
 
 ;

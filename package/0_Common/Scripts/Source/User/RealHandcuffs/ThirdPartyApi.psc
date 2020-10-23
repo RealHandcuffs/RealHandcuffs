@@ -1297,7 +1297,7 @@ Bool Function StartBoundWaitState(Actor target, Int pose, Bool playEnterAnimatio
         waitMarker = token.TryCreateTemporaryWaitMarker(animation, !makePlayerPosable)
     Else
         waitMarker = token.TryCreateTemporaryWaitMarker("", !makePlayerPosable)
-        If (waitMarker != None)
+        If (waitMarker != None && animation != "")
             Var[] kArgs = new Var[3]
             kArgs[0] = target
             kArgs[1] = animation

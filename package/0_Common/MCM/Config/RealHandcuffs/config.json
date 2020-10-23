@@ -306,6 +306,17 @@
           }
         },
         {
+          "groupCondition": 2,
+          "id": "iPipboyTerminalMode:ShockCollars",
+          "text": "Pip-Boy Terminal Mode",
+          "help": "Default: Open automatically unless an incompatible mod is detected.",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["Default", "Open Automatically", "Use Holodisk"]
+          }
+        },
+        {
           "type": "hiddenSwitcher",
           "groupControl": 3,
           "valueOptions": 

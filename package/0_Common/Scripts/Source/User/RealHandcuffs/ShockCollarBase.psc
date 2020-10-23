@@ -84,8 +84,9 @@ Bool Function EquipInteraction(Actor target)
     ElseIf (target == player)
         Int selection = Library.Resources.MsgBoxSelfEquipRobcoShockCollarPart1.Show()
         If (selection == 0)
-            ScheduleShowTerminalOnPipboyInteraction(false, false)
-             ; interaction continues, don't clear interaction type
+            If (ScheduleShowTerminalOnPipboyInteraction(target, false, false))
+                Return false ; interaction continues, don't clear interaction type
+            EndIf
         ElseIf (selection == 1)
             selection = Library.Resources.MsgBoxSelfEquipRobcoShockCollarPart2.Show()
             equipped = (selection == 0)
@@ -99,8 +100,9 @@ Bool Function EquipInteraction(Actor target)
         EndIf
         equipped = (selection == 1 || selection == 2)
         If (selection == 0 || selection == 2)
-            ScheduleShowTerminalOnPipboyInteraction(false, true)
-            Return equipped ; interaction continues, don't clear interaction type
+            If (ScheduleShowTerminalOnPipboyInteraction(target, false, true))
+                Return equipped ; interaction continues, don't clear interaction type
+            EndIf
         EndIf
     EndIf
     Library.ClearInteractionType()
@@ -130,8 +132,9 @@ Bool Function UnequipInteraction(Actor target)
         If (!UI.IsMenuOpen("ContainerMenu"))
             Int selection = Library.Resources.MsgBoxSelfRobcoShockCollarEquipped.Show()
             If (selection == 0)
-                ScheduleShowTerminalOnPipboyInteraction(false, false)
-                Return false ; interaction continues, don't clear interaction type
+                If (ScheduleShowTerminalOnPipboyInteraction(target, false, false))
+                    Return false ; interaction continues, don't clear interaction type
+                EndIf
             EndIf
         EndIf
     Else
@@ -142,8 +145,9 @@ Bool Function UnequipInteraction(Actor target)
             selection = Library.Resources.MsgBoxNpcRobcoShockCollarEquippedMale.Show()
         EndIf
         If (selection == 0)
-            ScheduleShowTerminalOnPipboyInteraction(GetContainer() == Game.GetPlayer(), true)
-            Return false ; interaction continues, don't clear interaction type
+            If (ScheduleShowTerminalOnPipboyInteraction(target, GetContainer() == Game.GetPlayer(), true))
+                Return false ; interaction continues, don't clear interaction type
+            EndIf
         EndIf
     EndIf
     Library.ClearInteractionType()
@@ -571,7 +575,20 @@ EndFunction
 ;
 ; Schedule the terminal on the pipboy from a interaction, giving time to end the interaction first.
 ;
-Function ScheduleShowTerminalOnPipboyInteraction(Bool moveToPlayerIfUnequipped, Bool openActorInventoryWhenFinished)
+Bool Function ScheduleShowTerminalOnPipboyInteraction(Actor target, Bool moveToPlayerIfUnequipped, Bool openActorInventoryWhenFinished)
+    If (Library.Settings.PipboyTerminalMode == 2 || (Library.Settings.PipboyTerminalMode == 0 && Library.SoftDependencies.PipPadAvailable))
+        ; manual terminal mode - moveToPlayerIfUnequipped and openActorInventoryWhenFinished will not take effect
+        TerminalData.Reset()
+        TerminalData.RegisteredShockCollar = Self
+        Actor player = Game.GetPlayer()
+        If (target == player)
+            Library.Resources.MsgBoxSelfManualPipBoyTerminalMode.Show()
+        Else
+            Library.Resources.MsgBoxNpcManualPipBoyTerminalMode.Show()
+        EndIf
+        Return False ; finish interaction, player will need to connect manually
+    EndIf
+    ; use direct mode
     Int timerId = ShowTerminalOnPipboyInteraction
     If (moveToPlayerIfUnequipped)
         timerId = ShowTerminalOnPipboyInteractionMoveToPlayerIfUnequipped
@@ -590,6 +607,7 @@ Function ScheduleShowTerminalOnPipboyInteraction(Bool moveToPlayerIfUnequipped, 
     Else
         StartTimer(0.1, timerId)
     EndIf
+    Return True
 EndFunction
 
 ;

@@ -456,8 +456,8 @@ changes to improve compatibility with AAF
 - check for deleted NPCs when loading the game and remove them from the managed NPCs (there is no event when actors are deleted)
 - fix: unassign companions who are assigned to prisoner mat when told to follow the player again
 
-Version 0.4.9 (Beta!)
-=============
+Version 0.4.9 Beta 1
+====================
 various small improvements, most requested in support thread
 - Add "Punishment Mode" to Mark III Shock Collar Firmware - this is the same as "T0rture M0de" in Hacked Firmware
 - Disable T0rture M0de / Punishment Mode for explosive collars
@@ -467,3 +467,9 @@ various small improvements, most requested in support thread
 - Upgrade LLFP Community plugin to version 39. WARNING: The new LLFP Communit plugin requires F4SE 0.6.21
 - ThirdPartApi: Add functions StartTortureMode, StopTortureMode, StartTortureModeOnActor, StopTortureModeOnActor
 - ThirdPartyApi: Fix: StartBoundWaitState will now correctly handle playEnterAnimation=false and/or makePlayerPosable=false
+
+Version 0.4.9 Beta 2
+====================
+workaround for Pip-Pad issues
+- Add RobCo Connect holotape: The holotape will connect to the last collar that was selected for connection
+- Add manual connection mode, if it is active the placer needs to connect to collars manually using RobCo connect
