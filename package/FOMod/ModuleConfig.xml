@@ -18,6 +18,7 @@
                 <flag name="compatibility_servitron">off</flag>
                 <flag name="compatibility_awkcr">off</flag>
                 <flag name="compatibility_ss_cq">off</flag>
+                <flag name="compatibility_dd_change_slots">off</flag>
               </conditionFlags>
               <typeDescriptor>
                 <type name="Recommended"/>
@@ -203,6 +204,35 @@
         </group>
       </optionalFileGroups>
     </installStep>
+    <installStep name="Select Item Slots">
+      <visible operator="And">
+        <flagDependency flag="compatibility_dd" value="on"/>
+      </visible>
+      <optionalFileGroups order="Explicit">
+        <group name="Item Slots" type="SelectExactlyOne">
+          <plugins order="Explicit">
+            <plugin name="Change Slots to Devious Devices Slots">
+              <description><![CDATA[<p>Use slots 37/38 for handcuffs (same as Devious Devices wrist shackles).</p>]]></description>
+              <conditionFlags>
+                <flag name="compatibility_dd_change_slots">on</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Recommended"/>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Keep Standard Slots">
+              <description><![CDATA[<p>Use slot 54 for handcuffs (this is the standard slot).</p>]]></description>
+              <conditionFlags>
+                <flag name="compatibility_dd_change_slots">off</flag>
+              </conditionFlags>
+              <typeDescriptor>
+                <type name="Optional"/>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
   </installSteps>
   <conditionalFileInstalls>
     <patterns>
@@ -313,7 +343,27 @@
           <flagDependency flag="compatibility_servitron" value="off"/>
         </dependencies>
         <files>
-          <folder source="4_Compatibility/Devious Devices" destination=""/>
+          <folder source="4_Compatibility/Devious Devices/Common" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_dd" value="on"/>
+          <flagDependency flag="compatibility_servitron" value="off"/>
+          <flagDependency flag="compatibility_dd_change_slots" value="off"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Devious Devices/SlotsStandard" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_dd" value="on"/>
+          <flagDependency flag="compatibility_servitron" value="off"/>
+          <flagDependency flag="compatibility_dd_change_slots" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Devious Devices/SlotsDeviousDevices" destination=""/>
         </files>
       </pattern>
       <pattern>
@@ -339,7 +389,27 @@
           <flagDependency flag="compatibility_servitron" value="on"/>
         </dependencies>
         <files>
-          <folder source="4_Compatibility/Devious Devices Servitron" destination=""/>
+          <folder source="4_Compatibility/Devious Devices Servitron/Common" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_dd" value="on"/>
+          <flagDependency flag="compatibility_servitron" value="on"/>
+          <flagDependency flag="compatibility_dd_change_slots" value="off"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Devious Devices Servitron/SlotsStandard" destination=""/>
+        </files>
+      </pattern>
+      <pattern>
+        <dependencies operator="And">
+          <flagDependency flag="compatibility_dd" value="on"/>
+          <flagDependency flag="compatibility_servitron" value="on"/>
+          <flagDependency flag="compatibility_dd_change_slots" value="on"/>
+        </dependencies>
+        <files>
+          <folder source="4_Compatibility/Devious Devices Servitron/SlotsDeviousDevices" destination=""/>
         </files>
       </pattern>
       <pattern>

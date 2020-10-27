@@ -473,3 +473,8 @@ Version 0.4.9 Beta 2
 workaround for Pip-Pad issues
 - Add RobCo Connect holotape: The holotape will connect to the last collar that was selected for connection
 - Add manual connection mode, if it is active the placer needs to connect to collars manually using RobCo connect
+
+Version 0.4.9 Beta 3
+====================
+allow choosing slot when installing devious devices compatibility plugin
+- Allow selecting the slots to use when installing the devious devices compatibility plugin: 37/38 (like DD wrist cuffs) or 54 (standard slot)

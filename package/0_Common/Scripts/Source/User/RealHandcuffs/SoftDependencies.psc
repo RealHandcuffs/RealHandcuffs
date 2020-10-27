@@ -76,6 +76,7 @@ EndGroup
 ; Group for forms of compatibility plugins
 ;
 Group CompatibilityPluginForms
+    Bool Property DDCompatibilityUseDDSlots Auto
     Topic Property DDCompatibilityFemaleGaggedPain Auto
     Topic Property DDCompatibilityFemaleGaggedExhausted Auto
     Quest Property JBCompatibilityMainQuest Auto
@@ -237,11 +238,17 @@ Function RefreshOnGameLoad()
     Bool ssConquerorCompatibilityPluginActive = Game.IsPluginInstalled(RealHandcuffsSSConquerorCompatibility)
     DDCompatibilityActive = ddPluginActive || ddServitronPluginActive
     If (ddPluginActive)
+        DDCompatibilityUseDDSlots = (Game.GetFormFromFile(0x000809, RealHandcuffsDDCompatibility) as GlobalVariable).GetValueInt() != 1
         DDCompatibilityFemaleGaggedPain = Game.GetFormFromFile(0x000804, RealHandcuffsDDCompatibility) as Topic
         DDCompatibilityFemaleGaggedExhausted = Game.GetFormFromFile(0x000806, RealHandcuffsDDCompatibility) as Topic
     ElseIf (ddServitronPluginActive)
+        DDCompatibilityUseDDSlots = (Game.GetFormFromFile(0x000809, RealHandcuffsDDServitronCompatibility) as GlobalVariable).GetValueInt() != 1
         DDCompatibilityFemaleGaggedPain = Game.GetFormFromFile(0x000804, RealHandcuffsDDServitronCompatibility) as Topic
         DDCompatibilityFemaleGaggedExhausted = Game.GetFormFromFile(0x000806, RealHandcuffsDDServitronCompatibility) as Topic
+    Else
+        DDCompatibilityUseDDSlots = false
+        DDCompatibilityFemaleGaggedPain = None
+        DDCompatibilityFemaleGaggedExhausted = None
     EndIf
     JBCompatibilityActive = jbPluginActive
     If (jbPluginActive)
