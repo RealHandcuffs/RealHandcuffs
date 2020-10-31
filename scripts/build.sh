@@ -66,6 +66,8 @@ then
   echo Copying files.
 fi
 cp -r -p package build
+cp changelog.txt build/package
+cp LICENSE.txt build/package
 VERSION=$(cat build/package/0_Common/Scripts/Source/User/RealHandcuffs/Installer.psc | sed -nr 's/^\s*String\s+Property\s+DetailedVersion\s*=\s*"([^"]+)"\s+AutoReadOnly\s*(;.*)$/\1/p')
 if [[ "$QUIET" == "" ]]
 then
