@@ -128,7 +128,7 @@ Function HandleState()
                     If (Library.Settings.InfoLoggingEnabled)
                         RealHandcuffs:Log.Info("Sending " + RealHandcuffs:Log.FormIdAsString(_target) + " " + _target.GetDisplayName() + " into bleedout because of shock damage.", Library.Settings)
                     EndIf
-                    _target.AddSpell(BleedoutSpell)
+                    _target.AddSpell(BleedoutSpell, false)
                     shockCausedBleedout = true
                 EndIf
             EndIf

@@ -168,6 +168,11 @@ Door Property InvisibleDoor Auto Const Mandatory
 MiscObject Property BobbyPin Auto Const Mandatory
 
 ;
+; RobCo Connect Holotape
+;
+Holotape Property RobCoConnect Auto Const Mandatory
+
+;
 ; Workshop keyword.
 ;
 Keyword Property WorkshopKeyword Auto Const Mandatory
@@ -206,6 +211,7 @@ Message Property MsgBoxBoobyTrapCorpse Auto Const Mandatory												; 0: boob
 Message Property MsgBoxChangeTimedLockDuration Auto Const Mandatory                                     ; 0-11: (x+1) hours
 Message Property MsgBoxNpcEquipRobcoShockCollarFemale Auto Const Mandatory                              ; 0: connect pip-box, 1: equip 2: both, 3: abort
 Message Property MsgBoxNpcEquipRobcoShockCollarMale Auto Const Mandatory                                ; 0: connect pip-box, 1: equip 2: both, 3: abort
+Message Property MsgBoxNpcManualPipBoyTerminalMode Auto Const Mandatory                                 ; 0: OK
 Message Property MsgBoxNpcRobcoShockCollarEquippedFemale Auto Const Mandatory                           ; 0: connect pip-boy, 1: abort
 Message Property MsgBoxNpcRobcoShockCollarEquippedMale Auto Const Mandatory                             ; 0: connect pip-boy, 1: abort
 Message Property MsgBoxNpcUnlockHandcuffsBrokenNoKeyFemale Auto Const Mandatory                         ; 0: try to pick lock, 1: abort
@@ -268,6 +274,7 @@ Message Property MsgBoxSelfHandcuffsOnBackRatherLoose Auto Const Mandatory      
 Message Property MsgBoxSelfHandcuffsHingedOnBackRatherLoose Auto Const Mandatory                        ; 0: struggle, 1: investigate lock, 2: abort, 3: tighten
 Message Property MsgBoxSelfHandcuffsOnBackVeryTight Auto Const Mandatory                                ; 0: struggle, 1: investigate lock, 2: abort
 Message Property MsgBoxSelfHandcuffsHingedOnBackVeryTight Auto Const Mandatory                          ; 0: struggle, 1: investigate lock, 2: abort
+Message Property MsgBoxSelfManualPipBoyTerminalMode Auto Const Mandatory                                ; 0: OK 
 Message Property MsgBoxSelfRobcoShockCollarEquipped Auto Const Mandatory                                ; 0: connect pip-boy, 1: abort
 Message Property MsgBoxStruggleFailToEscapeBrokenHandcuffsQuiteTight Auto Const Mandatory               ; 0: struggle, 1: abort
 Message Property MsgBoxStruggleFailToEscapeBrokenHandcuffsVeryTight Auto Const Mandatory                ; 0: struggle, 1: abort

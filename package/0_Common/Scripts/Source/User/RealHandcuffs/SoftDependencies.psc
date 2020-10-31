@@ -29,6 +29,8 @@ Group Plugins
     String Property AdvancedAnimationFramework = "AAF.esm" AutoReadOnly
     String Property SSConqueror                = "SimSettlements_XPAC_Conqueror.esp" AutoReadOnly
     String Property CanarySaveFileMonitor      = "CanarySaveFileMonitor.esl" AutoReadOnly
+    String Property WorkshopFramework          = "WorkshopFramework.esm" AutoReadOnly
+    String Property PipPad                     = "PIP-Pad.esp" AutoReadOnly
 EndGroup
 
 ;
@@ -44,6 +46,8 @@ Group AvailablePlugins
     Bool Property KnockoutFrameworkAvailable Auto
     Bool Property AdvancedAnimationFrameworkAvailable Auto
     Bool Property SSConquerorAvailable Auto
+    Bool Property WorkshopFrameworkAvailable Auto
+    Bool Property PipPadAvailable Auto
 EndGroup
 
 ;
@@ -72,6 +76,7 @@ EndGroup
 ; Group for forms of compatibility plugins
 ;
 Group CompatibilityPluginForms
+    Bool Property DDCompatibilityUseDDSlots Auto
     Topic Property DDCompatibilityFemaleGaggedPain Auto
     Topic Property DDCompatibilityFemaleGaggedExhausted Auto
     Quest Property JBCompatibilityMainQuest Auto
@@ -159,6 +164,13 @@ Group CanarySaveFileMonitor
 EndGroup
 
 ;
+; Forms used from Workshop Framework
+;
+Group WorkshopFramework
+    GlobalVariable Property WSFW_AlternateActivation_Workshop Auto
+EndGroup
+
+;
 ; Refresh the third party dependencies when the game is loaded.
 ;
 Function RefreshOnGameLoad()
@@ -175,6 +187,8 @@ Function RefreshOnGameLoad()
     AdvancedAnimationFrameworkAvailable = GetAdvancedAnimationFrameworkForms()
     SSConquerorAvailable = GetSSConquerorForms()
     Bool CanarySaveFileMonitorAvailable = CheckForCanary()
+    WorkshopFrameworkAvailable = GetWorkshopFrameworkForms()
+    PipPadAvailable = GetPipPadForms()
     SoftDependenciesLoading = false
     If (Library.Settings.InfoLoggingEnabled)
        String list = ""
@@ -208,6 +222,12 @@ Function RefreshOnGameLoad()
         If (CanarySaveFileMonitorAvailable)
             list = AddToList(list, CanarySaveFileMonitor)
         EndIf
+        If (WorkshopFrameworkAvailable)
+            list = AddToList(list, WorkshopFramework)
+        EndIf
+        If (PipPadAvailable)
+            list = AddToList(list, PipPad)
+        EndIf
         RealHandcuffs:Log.Info("Available soft dependencies: " + list, Library.Settings)
     EndIf
     Bool awkcrPluginActive = Game.IsPluginInstalled(RealHandcuffsAWKCRCompatibility)
@@ -218,11 +238,17 @@ Function RefreshOnGameLoad()
     Bool ssConquerorCompatibilityPluginActive = Game.IsPluginInstalled(RealHandcuffsSSConquerorCompatibility)
     DDCompatibilityActive = ddPluginActive || ddServitronPluginActive
     If (ddPluginActive)
+        DDCompatibilityUseDDSlots = (Game.GetFormFromFile(0x000809, RealHandcuffsDDCompatibility) as GlobalVariable).GetValueInt() != 1
         DDCompatibilityFemaleGaggedPain = Game.GetFormFromFile(0x000804, RealHandcuffsDDCompatibility) as Topic
         DDCompatibilityFemaleGaggedExhausted = Game.GetFormFromFile(0x000806, RealHandcuffsDDCompatibility) as Topic
     ElseIf (ddServitronPluginActive)
+        DDCompatibilityUseDDSlots = (Game.GetFormFromFile(0x000809, RealHandcuffsDDServitronCompatibility) as GlobalVariable).GetValueInt() != 1
         DDCompatibilityFemaleGaggedPain = Game.GetFormFromFile(0x000804, RealHandcuffsDDServitronCompatibility) as Topic
         DDCompatibilityFemaleGaggedExhausted = Game.GetFormFromFile(0x000806, RealHandcuffsDDServitronCompatibility) as Topic
+    Else
+        DDCompatibilityUseDDSlots = false
+        DDCompatibilityFemaleGaggedPain = None
+        DDCompatibilityFemaleGaggedExhausted = None
     EndIf
     JBCompatibilityActive = jbPluginActive
     If (jbPluginActive)
@@ -402,6 +428,21 @@ Bool Function CheckForCanary()
     kArgs[1] = "RealHandcuffs:SoftDependencies" ; must be the same as the script name!
     Utility.CallGlobalFunction("Canary:API", "MonitorForDataLoss", kArgs)
     Return true
+EndFunction
+
+;
+; Get the forms used from Workshop Framework
+;
+Bool Function GetWorkshopFrameworkForms()
+    WSFW_AlternateActivation_Workshop = Game.GetFormFromFile(0x015132, WorkshopFramework) as GlobalVariable
+    Return WSFW_AlternateActivation_Workshop != None
+EndFunction
+
+;
+; Get the forms used from Pip Pad
+;
+Bool Function GetPipPadForms()
+    Return Game.IsPluginInstalled(PipPad)
 EndFunction
 
 ;

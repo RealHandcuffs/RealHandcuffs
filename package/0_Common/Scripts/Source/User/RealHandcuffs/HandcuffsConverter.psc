@@ -59,6 +59,7 @@ Function Initialize(Bool upgrade)
                 RealHandcuffs:Log.Info("Adding handcuffs key to player.", Library.Settings)
                 MsgInstallationPlaythroughInProgress.Show()
                 Player.AddItem(HandcuffsKey, 1, false)
+                Player.AddItem(Library.Resources.RobCoConnect, 1, false)
             EndIf
         Else
             ObjectReference sanctuaryWorkshopContainer = SanctuaryWorkshopRef.GetContainer()
@@ -74,6 +75,7 @@ Function Initialize(Bool upgrade)
                 ObjectReference remoteTriggerRef = Game.GetPlayer().PlaceAtMe(RemoteTrigger, 1, false, true, false)
                 remoteTriggerRef.EnableNoWait()
                 sanctuaryWorkshopContainer.AddItem(remoteTriggerRef, 1, true)
+                sanctuaryWorkshopContainer.AddItem(Library.Resources.RobCoConnect, 1, true)
             EndIf
         EndIf
         If (Library.SoftDependencies.DLCNukaWorldAvailable && player.GetItemCount(Library.SoftDependencies.ShockCollar) > 0 && Library.Settings.AutoConvertHandcuffs)

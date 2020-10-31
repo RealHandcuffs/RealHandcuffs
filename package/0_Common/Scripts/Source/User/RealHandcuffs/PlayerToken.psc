@@ -44,6 +44,7 @@ Float Property LastQuickKeyRealTime Auto
 Form Property LastQuickKeyItem Auto
 
 InputEnableLayer _inputLayer
+Bool _disabledWorkshopFrameworkActivation
 
 ;
 ; Override: Get whether the hands of the actor are currently bound behind their back.
@@ -242,6 +243,14 @@ Function ApplyEffects(Bool forceRefresh, RealHandcuffs:RestraintBase handsBoundB
         Target.RemovePerk(NoDisarmTraps)
         ; allow workshop mode
         UnregisterForRemoteEvent(Workshops, "OnWorkshopMode")
+        ; restore WorkshopsFramework activation
+        If (_disabledWorkshopFrameworkActivation)
+            GlobalVariable wsfwActivation = Library.SoftDependencies.WSFW_AlternateActivation_Workshop
+            If (wsfwActivation != None)
+                wsfwActivation.SetValueInt(1)
+            EndIf
+            _disabledWorkshopFrameworkActivation = false
+        EndIf
     EndIf
     If ((forceRefresh || !oldHandsBoundBehindBack) && handsBoundBehindBack)
         RealHandcuffs:Log.Info("Applying hands bound behind back impact on player.", Library.Settings)
@@ -293,6 +302,12 @@ Function ApplyEffects(Bool forceRefresh, RealHandcuffs:RestraintBase handsBoundB
         Target.AddPerk(NoDisarmTraps)
         ; disallow workshop mode
         RegisterForRemoteEvent(Workshops, "OnWorkshopMode")
+        ; disable WorkshopsFramework activation
+        GlobalVariable wsfwActivation = Library.SoftDependencies.WSFW_AlternateActivation_Workshop
+        If (wsfwActivation != None && wsfwActivation.GetValueInt() == 1)
+            wsfwActivation.SetValueInt(0)
+            _disabledWorkshopFrameworkActivation = true
+        EndIf
         ; restore camera
         If (switchedCamera)
             Utility.Wait(0.1)

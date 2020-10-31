@@ -7,7 +7,8 @@ Scriptname RealHandcuffs:ShockCollarTerminalData extends Quest Conditional
 ; Reset all members to default values.
 ;
 Function Reset()
-    Flavor = 0
+    RegisteredShockCollar = None
+    Flavor = NoCarrier
     PinInputState = 0
     NumberOfPinDigits = 0
     StoredPin = 0
@@ -116,9 +117,40 @@ Function CopyStoredPinToPinDigits()
 EndFunction
 
 ;
+; Contains a reference to the a shock collar that is 'registered' for the 'initiate connection'  option.
+;
+RealHandcuffs:ShockCollarBase Property RegisteredShockCollar Auto
+
+;
+; Queue an update of the last connected shock collar the next time the terminal menu closes.
+;
+Function RegisterForUpdateOnNextTerminalMenuClose()
+    RegisterForMenuOpenCloseEvent("TerminalMenu")
+EndFunction
+
+;
+; Update the shock collar when the menu closes.
+;
+Event OnMenuOpenCloseEvent(string asMenuName, bool abOpening)
+    If (!abOpening && asMenuName == "TerminalMenu")
+        UnregisterForMenuOpenCloseEvent("TerminalMenu")
+        If (RegisteredShockCollar != None)
+            Actor target = RegisteredShockCollar.SearchCurrentTarget()
+            If (target != None)
+                Int terminalResult = RegisteredShockCollar.UpdateShockCollarFromTerminalData(target)
+                If (terminalResult == 2 && UI.IsMenuOpen("PipboyMenu"))
+                    UI.CloseMenu("PipboyMenu")
+                EndIf
+            EndIf
+        EndIf
+    EndIf
+EndEvent
+
+;
 ; Group for firmware flavors.
 ;
 Group Flavor
+    Int Property NoCarrier = -1 AutoReadOnly
     Int Property MarkTwoFirmware = 0 AutoReadOnly
     Int Property MarkThreeFirmware = 1 AutoReadOnly
 	Int Property HackedFirmware = 2 AutoReadOnly

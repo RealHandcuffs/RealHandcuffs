@@ -34,6 +34,7 @@ EndFunction
 ; 8             0.4 RC 1
 ; 9             0.4.4 beta 1
 ; 10            0.4.4 RC 1
+; 11            0.4.9 beta 1
 ;
 Int Function ApiVersion()
     Return 10
@@ -1010,7 +1011,7 @@ EndFunction
 ; Returns the number of digits, or 0 if the restraint does not support an access code. Added in api version: 5
 ;
 Int Function GetAccessCodeNumberOfDigits(ObjectReference restraint)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         Return collar.GetNumberOfAccessCodeDigits()
     EndIf
@@ -1023,7 +1024,7 @@ EndFunction
 ; an access code set. Added in api version: 5
 ;
 Int Function GetAccessCode(ObjectReference restraint)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         Return collar.GetAccessCode()
     EndIf
@@ -1037,7 +1038,7 @@ EndFunction
 ; an access code set. Added in api version: 5
 ;
 String Function GetAccessCodeAsString(ObjectReference restraint)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         Int numberOfDigits = collar.GetNumberOfAccessCodeDigits()
         If (numberOfDigits > 0)
@@ -1064,7 +1065,7 @@ EndFunction
 ; Added in api version: 5
 ;
 Int Function SetAccessCode(ObjectReference restraint, Int accessCode)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         collar.SetAccessCode(accessCode)
         Return collar.GetAccessCode()
@@ -1078,7 +1079,7 @@ EndFunction
 ; Added in api version: 5
 ;
 Int Function GetUnauthorizedAccessAction(ObjectReference restraint)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         Return collar.ActionOnFailedAccessCodeEntry
     EndIf
@@ -1091,7 +1092,7 @@ EndFunction
 ; can support all unauthorized access actions. Added in api version: 5
 ;
 Int Function SetUnauthorizedAccessAction(ObjectReference restraint, Int unauthorizedAccessAction)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         collar.ActionOnFailedAccessCodeEntry = Math.Max(IgnoreUnauthorizedAccess, Math.Min(UnauthorizedAccessLockAndTrigger, unauthorizedAccessAction)) as Int
         Return collar.ActionOnFailedAccessCodeEntry
@@ -1104,7 +1105,7 @@ EndFunction
 ; Returns the trigger mode, see above in definition of Group TriggerMode, or -1 if not supported. Added in api version: 5
 ;
 Int Function GetTriggerMode(ObjectReference restraint)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         Return collar.GetTriggerMode()
     EndIf
@@ -1117,12 +1118,87 @@ EndFunction
 ; can support all trigger modes. Added in api version: 5
 ;
 Int Function SetTriggerMode(ObjectReference restraint, Int triggerMode)
-    RealHandcuffs:ShockCollar collar = restraint as RealHandcuffs:ShockCollar
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
     If (collar != None)
         collar.SetTriggerMode(triggerMode)
         Return collar.GetTriggerMode()
     EndIf
     Return -1
+EndFunction
+
+;
+; Start the torture mode of an equiped restraint that supports torture mode.
+; Returns true on success, false if the restraint is not equipped or does not support torture mode. Added in api version: 11
+;
+Bool Function StartTortureMode(ObjectReference restraint, Int shocksPerGameHour)
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
+    If (collar != None && collar.GetSupportsTortureMode())
+        Actor target = collar.SearchCurrentTarget()
+        If (target != None)
+            Float frequency = 1.0 / Math.Max(1.0, Math.Min(6.0, shocksPerGameHour)) ; clamp shocksPerGameHour to 1..6
+            collar.SetTortureModeFrequency(frequency)
+            collar.RestartTortureMode(target)
+            Return true
+        EndIf
+    EndIf
+    Return false
+EndFunction
+
+;
+; Stops the torture mode of an equiped restraint that supports torture mode.
+; Returns true on success, false if the restraint is not equipped or does not support torture mode. Added in api version: 11
+;
+Bool Function StopTortureMode(ObjectReference restraint)
+    RealHandcuffs:ShockCollarBase collar = restraint as RealHandcuffs:ShockCollarBase
+    If (collar != None && collar.GetSupportsTortureMode())
+        Actor target = collar.SearchCurrentTarget()
+        If (target != None)
+            collar.SetTortureModeFrequency(0.0)
+            collar.RestartTortureMode(target)
+            Return true
+        EndIf
+    EndIf
+    Return false
+EndFunction
+
+;
+; Start the torture mode on an actor, if the actor has an equiped restraint that supports torture mode.
+; Returns true on success, false if the actor has no such restraint. Added in api version: 11
+;
+Bool Function StartTortureModeOnActor(Actor target, Int shocksPerGameHour)
+    RealHandcuffs:RestraintBase[] restraints = GetRestraintsMaybeFilterByEffect(target, RemoteTriggerEffect)
+    Int index = 0
+    While (index < restraints.Length)
+        RealHandcuffs:ShockCollarBase collar = restraints[index] as RealHandcuffs:ShockCollarBase
+        If (collar != None && collar.GetSupportsTortureMode())
+            Float frequency = 1.0 / Math.Max(1.0, Math.Min(6.0, shocksPerGameHour)) ; clamp shocksPerGameHour to 1..6
+            collar.SetTortureModeFrequency(frequency)
+            collar.RestartTortureMode(target)
+            Return true ; return after the first device
+        EndIf
+        index += 1
+    EndWhile
+    Return false
+EndFunction
+
+;
+; Stop the torture mode on an actor, if the actor has an equiped restraint that supports torture mode.
+; Returns true on success, false if the actor has no such restraint. Added in api version: 11
+;
+Bool Function StopTortureModeOnActor(Actor target)
+    RealHandcuffs:RestraintBase[] restraints = GetRestraintsMaybeFilterByEffect(target, RemoteTriggerEffect)
+    Int index = 0
+    Int stoppedDeviceCount = 0
+    While (index < restraints.Length)
+        RealHandcuffs:ShockCollarBase collar = restraints[index] as RealHandcuffs:ShockCollarBase
+        If (collar != None && collar.GetSupportsTortureMode())
+            collar.SetTortureModeFrequency(0.0)
+            collar.RestartTortureMode(target)
+            stoppedDeviceCount += 1 ; continue with other devices
+        EndIf
+        index += 1
+    EndWhile
+    Return stoppedDeviceCount > 0
 EndFunction
 
 ;
@@ -1217,7 +1293,18 @@ Bool Function StartBoundWaitState(Actor target, Int pose, Bool playEnterAnimatio
         waitMarker.Unregister(target)
     EndIf
     String animation = ConvertPoseToAnimation(pose)
-    waitMarker = token.TryCreateTemporaryWaitMarker(animation, true)
+    If (playEnterAnimation)
+        waitMarker = token.TryCreateTemporaryWaitMarker(animation, !makePlayerPosable)
+    Else
+        waitMarker = token.TryCreateTemporaryWaitMarker("", !makePlayerPosable)
+        If (waitMarker != None && animation != "")
+            Var[] kArgs = new Var[3]
+            kArgs[0] = target
+            kArgs[1] = animation
+            kArgs[2] = false ; do not play enter animation
+            waitMarker.CallFunctionNoWait("StartAnimationAndWait", kArgs)
+        EndIf
+    EndIf
     If (waitMarker == None)
         ; failure, not sure why
         Return false
