@@ -478,3 +478,7 @@ Version 0.4.9 Beta 3
 ====================
 allow choosing slot when installing devious devices compatibility plugin
 - Allow selecting the slots to use when installing the devious devices compatibility plugin: 37/38 (like DD wrist cuffs) or 54 (standard slot)
+
+Version 0.4.9
+=============
+clean masters of JB compatibility patch
