@@ -37,7 +37,7 @@ EndFunction
 ; 11            0.4.9 beta 1
 ;
 Int Function ApiVersion()
-    Return 10
+    Return 11
 EndFunction
 
 

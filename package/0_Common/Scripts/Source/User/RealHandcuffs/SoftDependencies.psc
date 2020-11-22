@@ -559,6 +559,29 @@ Bool Function IsEscapedSlave(Actor target)
 EndFunction
 
 ;
+; Check if an actor can be enslaved using Just Business functionality.
+;
+Bool Function CanBeJustBusinessEnslaved(Actor target)
+    Return JustBusinessAvailable && (target.HasMagicEffect(JBMarkEffect) || IsValidJBMarkSpellVictim(target))
+EndFunction
+
+;
+; Enslave an actor using Just Business functionality.
+;
+Bool Function JustBusinessEnslave(Actor target)
+    If (!CanBeJustBusinessEnslaved(target))
+        Return False
+    EndIf
+    If (!target.HasMagicEffect(JBMarkEffect) && !target.IsBleedingOut())
+        target.PlayIdleAction(Library.Resources.ActionBleedoutStart) ; send into "bleedout" because the cloning process can take a long time
+    EndIf
+    Var[] kArgs = new Var[2]
+    kArgs[0] = target
+    kArgs[1] = false
+    JBSlaveQuest.CallFunction("CreateClone", kArgs)
+EndFunction
+
+;
 ; Try to make a slave follow like a follower.
 ;
 Bool Function SlaveFollow(Actor target)
@@ -590,7 +613,7 @@ EndFunction
 ; Check if an actor is a valid victim for the JBMarkSpell.
 ;
 Bool Function IsValidJBMarkSpellVictim(Actor target)
-    Return JustBusinessAvailable && !target.HasKeyword(VanillaShockCollarTriggering) && target != Game.GetPlayer() && !target.IsDead() && !Library.SoftDependencies.IsArmorRack(target) && !target.HasKeyword(ActorTypeRobot) && !target.HasKeyword(ActorTypeChild) && (target.HasKeyword(ActorTypeNPC) || target.HasKeyword(ActorTypeSuperMutant) || target.HasKeyword(ActorTypeSynth)) && !target.IsInFaction(JBSlaveFaction) && !target.HasMagicEffect(JBMarkEffect)
+    Return JustBusinessAvailable && !target.HasKeyword(VanillaShockCollarTriggering) && target != Game.GetPlayer() && !target.IsDead() && !IsArmorRack(target) && !target.HasKeyword(ActorTypeRobot) && !target.HasKeyword(ActorTypeChild) && (target.HasKeyword(ActorTypeNPC) || target.HasKeyword(ActorTypeSuperMutant) || target.HasKeyword(ActorTypeSynth)) && !target.IsInFaction(JBSlaveFaction) && !target.HasMagicEffect(JBMarkEffect)
 EndFunction
 
 ;

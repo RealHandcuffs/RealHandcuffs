@@ -51,3 +51,10 @@ Int Function GetSupportedTriggerModes()
     EndIf
     Return TerminalData.SimpleTrigger
 EndFunction
+
+;
+; Override: Check if the collar can be used for enslavement.
+;
+Bool Function CanBeUsedForEnslavement()
+    Return true
+EndFunction

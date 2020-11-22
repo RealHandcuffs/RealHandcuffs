@@ -22,5 +22,4 @@
 |
 +- changelog.txt                            internal development changelog
 +- contents.txt                             this file
-+- installation.txt                         manual installation instructions
 +- LICENSE.txt                              the license for this package: CC0 license
