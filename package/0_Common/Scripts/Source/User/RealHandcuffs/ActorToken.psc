@@ -11,6 +11,7 @@ Form _itemInHand
 RealHandcuffs:RestraintBase[] _restraints
 Keyword _mtAnimationForArms
 Bool _uninitialized
+Bool _modifyRestraintsLock
 
 ;
 ; Get the actor being tracked by this token.
@@ -292,8 +293,13 @@ Function ApplyRestraint(RealHandcuffs:RestraintBase restraint)
     EndIf
     Int index = 0
     Int position = 0
+    While (_modifyRestraintsLock)
+        _target.GetPropertyValue("X") ; yield by calling latent function
+    EndWhile
+    _modifyRestraintsLock = true
     While (index < _restraints.Length)
         If (_restraints[index] == restraint)
+            _modifyRestraintsLock = false
             RealHandcuffs:Log.Warning("Trying to apply restraint that is already applied.", Library.Settings)
             Return
         EndIf
@@ -303,6 +309,7 @@ Function ApplyRestraint(RealHandcuffs:RestraintBase restraint)
         index += 1
     EndWhile
     _restraints.Insert(restraint, position) ; keep restraints sorted by increasing priority
+    _modifyRestraintsLock = false
     RefreshEffectsAndAnimations(false, restraint)
     Var[] kArgs = new Var[2]
     kArgs[0] = _target
@@ -315,9 +322,14 @@ EndFunction
 ;
 Function UnapplyRestraint(RealHandcuffs:RestraintBase restraint)
     Int index = 0
+    While (_modifyRestraintsLock)
+        _target.GetPropertyValue("X") ; yield by calling latent function
+    EndWhile
+    _modifyRestraintsLock = true
     While (index < _restraints.Length)
         If (_restraints[index] == restraint)
             _restraints.Remove(index)
+            _modifyRestraintsLock = false
             RefreshEffectsAndAnimations(false, None)
             Var[] kArgs = new Var[2]
             kArgs[0] = _target
@@ -348,6 +360,7 @@ Function UnapplyRestraint(RealHandcuffs:RestraintBase restraint)
         EndIf
         index += 1
     EndWhile
+    _modifyRestraintsLock = false
     RealHandcuffs:Log.Warning("Trying to unapply restraint that is not applied.", Library.Settings)
 EndFunction
 
@@ -378,6 +391,10 @@ Function RefreshEffectsAndAnimations(Bool forceRefresh, ObjectReference maybeNew
     Keyword mtAnimationForArms = None
     RealHandcuffs:RestraintBase[] remoteTriggerRestraints = None
     Int restraintIndex = 0
+    While (_modifyRestraintsLock)
+        _target.GetPropertyValue("X") ; yield by calling latent function
+    EndWhile
+    _modifyRestraintsLock = true
     While (restraintIndex < _restraints.Length)
         RealHandcuffs:RestraintBase restraint = _restraints[restraintIndex]
         If (restraint.GetContainer() != _target)
@@ -418,6 +435,7 @@ Function RefreshEffectsAndAnimations(Bool forceRefresh, ObjectReference maybeNew
     EndWhile
     ApplyEffects(forceRefresh, handsBoundBehindBackRestraint, remoteTriggerRestraints)
     ApplyAnimations(forceRefresh, mtAnimationForArms)
+    _modifyRestraintsLock = false
     If (unequippedRestraints != None)
         restraintIndex = 0
         While (restraintIndex < unequippedRestraints.Length)

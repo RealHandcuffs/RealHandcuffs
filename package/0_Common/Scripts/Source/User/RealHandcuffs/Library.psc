@@ -525,6 +525,7 @@ Function ZapWithDefaultShock(Actor target, Actor source = None)
             Resources.DefaultShockSpell.RemoteCast(target, source, target)
         EndIf
     EndIf
+    SpeechHandler.SayPainTopic(target)
 EndFunction
 
 ;
@@ -544,4 +545,5 @@ Function ZapWithThrobbingShock(Actor target, Actor source = None)
             Resources.ThrobbingShockSpell.RemoteCast(target, source, target)
         EndIf
     EndIf
+    SpeechHandler.SayPainTopic(target)
 EndFunction
