@@ -68,14 +68,15 @@ fi
 SOURCE_F4SE=$(echo "$SOURCE_F4SE" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')
 
 # set up a function to compile all scripts in a folder using parallel execution
-# $1: input folder (must be subfolder of "package" folder and contain 'Source/User' folder)
-# $2: additional imports
+# $1: input folder (must be subfolder of "package")
+# $2: path in input folder (usually 'Source/User')
+# $3: additional imports
 function compile_folder() {
   if [[ $QUIET == 0 ]]
   then
     echo "Compiling: $1"
   fi
-  cd "$BASE_DIR/$1/Source/User"
+  cd "$BASE_DIR/$1/$2"
   files=()
   pids=()
   # the for loops works because the folders (which correspond to namespaces) have no whitespace
@@ -88,7 +89,7 @@ function compile_folder() {
     else
       options="-release -final -optimize -quiet"
     fi
-    "$DIR_FALLOUT4CREATIONKIT/Papyrus Compiler/PapyrusCompiler.exe" "$f" $options -flags="$SOURCE_BASE\\Institute_Papyrus_Flags.flg" -import="$SOURCE_F4SE;$SOURCE_BASE;$2" -output="$(echo "$BASE_DIR/build/$1" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')" &
+    "$DIR_FALLOUT4CREATIONKIT/Papyrus Compiler/PapyrusCompiler.exe" "$f" $options -flags="$SOURCE_BASE\\Institute_Papyrus_Flags.flg" -import="$SOURCE_F4SE;$SOURCE_BASE;$3" -output="$(echo "$BASE_DIR/build/$1" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')" &
     pids+=( "$!" )
   done
   failures=()
@@ -114,12 +115,17 @@ function compile_folder() {
 
 # call the function for the package/0_Common folder, using LL_FourPlay as dependency
 SOURCE_LL_FOURPLAY=$(echo "$BASE_DIR/package/5_ThirdParty/LL FourPlay community F4SE plugin/Scripts/Source/User" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')
-compile_folder "package/0_Common/Scripts" "$SOURCE_LL_FOURPLAY"
+compile_folder "package/0_Common/Scripts" "Source/User" "$SOURCE_LL_FOURPLAY"
 
 # call the function for all other script folders, using 0_Common as dependency (but skip 5_ThirdParty)
 SOURCE_RH_COMMON=$(echo "$BASE_DIR/package/0_Common/Scripts/Source/User" | sed -e 's/\///' -e 's/\//:\\/' -e 's/\//\\/g')
+find package -name '*.psc' ! -path 'package/0_Common/*' ! -path 'package/5_ThirdParty/*' | sed -rn 's/(package\/.*)\/Source\/Base\/.*\.psc/\1/p' | sort -u |\
+while read -r i
+do
+  compile_folder "$i" "Source/Base" "$SOURCE_RH_COMMON"
+done  
 find package -name '*.psc' ! -path 'package/0_Common/*' ! -path 'package/5_ThirdParty/*' | sed -rn 's/(package\/.*)\/Source\/User\/.*\.psc/\1/p' | sort -u |\
 while read -r i
 do
-  compile_folder "$i" "$SOURCE_RH_COMMON"
+  compile_folder "$i" "Source/User" "$SOURCE_RH_COMMON"
 done  

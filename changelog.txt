@@ -487,5 +487,6 @@ Version 0.4.10
 ==============
 TODO
 - add quick inventory interaction (disbled by default, setting in hotkeys MCM page)
+- Put handcuffs on the captives in some vanilla scenes and random encountes (only standard edition, not in lite edition)
 - JB Integration: allow enslaving NPCs by equipping shock collars on them (requires confirmation by default, setting in shock collar MCM page)
-- API Fix: ThirdPartApi.ApiVersion() will now return 11
+- Small ThirdPartApi fix and improvement

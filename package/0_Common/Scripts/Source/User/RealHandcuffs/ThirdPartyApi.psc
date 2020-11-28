@@ -35,9 +35,10 @@ EndFunction
 ; 9             0.4.4 beta 1
 ; 10            0.4.4 RC 1
 ; 11            0.4.9 beta 1
+; 12            0.4.10
 ;
 Int Function ApiVersion()
-    Return 11
+    Return 12
 EndFunction
 
 
@@ -557,6 +558,28 @@ Var Function GetEquippedRestraintsWithEffect(Actor target, Int effect)
         EndWhile
     EndIf
     Return Utility.VarArrayToVar(restraints as Var[])
+EndFunction
+
+
+;
+; Get the first worn restraint with the specified effect, or None if no restrains with the specified effect are worn.
+; This is the same as calling GetEquippedRestraintsWithEffect and then taking the first array element, but it does not
+; require casting.
+; Added in api version: 12
+;
+ObjectReference Function GetFirstEquippedRestraintWithEffect(Actor target, Int effect)
+    ActorToken token = Library.TryGetActorToken(target)
+    If (token != None)
+        RealHandcuffs:RestraintBase[] wornRestraints = token.Restraints
+        Int index = 0
+        While (index < wornRestraints.Length)
+            If (HasEffect(wornRestraints[index], effect))
+                return wornRestraints[index]
+            EndIf
+            index += 1
+        EndWhile
+    EndIf
+    Return None
 EndFunction
 
 ;
