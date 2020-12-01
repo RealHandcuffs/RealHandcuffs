@@ -80,9 +80,12 @@ EndFunction
 ; Check if an actor is a valid target for the quick-inventory action.
 ;
 Bool Function IsValidQuickInventoryTarget(Actor akActor)
-    If (akActor.HasKeyword(ActorTypeNPC))
+    If (akActor.HasKeyword(ActorTypeNPC) && Game.GetPlayer().GetDistance(akActor) <= 256)
         If (akActor.IsPlayerTeammate() || akActor.HasKeyword(PlayerTeammateFlagRemoved))
             Return true
+        EndIf
+        If (Library.SoftDependencies.IsSlave(akActor))
+             Return !Library.SoftDependencies.IsEscapedSlave(akActor)
         EndIf
         If (akActor.GetValue(WorkshopPlayerOwned) >= 1 && akActor.GetLinkedRef(WorkshopLinkHome) != None && !akActor.IsHostileToActor(Game.GetPlayer()))
             Return true
