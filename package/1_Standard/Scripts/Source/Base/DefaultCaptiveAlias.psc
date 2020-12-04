@@ -1,74 +1,109 @@
-Scriptname REPrisonerScript extends ReferenceAlias
+Scriptname DefaultCaptiveAlias extends ReferenceAlias
 
 ;This script pops a message box when activating the prisoner
 ;if player frees, adds captors, himself, and prisoner to factions to make people hate each other
 ;You should make sure elsewhere that the captors have aggression high enough to attack their enemies
 
 
-Keyword Property RESharedDialoguePrisonerSetFree Auto const mandatory
-Keyword Property AnimFlavorHandsBound Auto const mandatory
+Group MainProperties
+	bool Property DisableOnUnload = false Auto Const
+	{after being freed, this actor will disable when unloaded}
+	bool Property AlsoRemoveFromCaptiveFaction = false Auto Const
+	{after being freed, this actor will also be removed from the CaptiveFaction
+		Use this for actors that will be attacked while fleeing}
+	int Property AggressionAfterFreed = -1 Auto Const
+	{freed actor will be set with this aggression}
+EndGroup
 
-Message Property REPrisonerMessageBox Auto const
-Faction Property REPrisonerFreedFaction Auto const
+Group SetStageProperties
+	Quest Property myQuest Auto
+	{ If this is set, set the stage on this quest if StageToSetWhenFreed is not -1
+		If myQuest is NOT set, it will try to set the stage on the owning quest}
+	int Property StageToSetWhenFreed = -1 auto const
+	{ this stage will be set when the prisoner is freed }
+	int Property StageToSetOnCleanUp = -1 Auto Const
+	{ this stage will be set when we try to clean up the actor }
+	bool Property bSetStageOnlyIfPlayerFreed = true auto const
+	{ false is always set stage when prisoner is freed }
 
-Faction Property REPrisonerFreedCombatCaptorFaction Auto const
-Faction Property REPrisonerFreedCombatPrisonerFaction Auto const
-Faction Property CaptiveFaction Auto const
+EndGroup
 
-RefCollectionAlias Property Captors Auto const
-{ Try to get this from quest script REScript }
+Group CleanUpProperties
+	Float Property CleanUpTime = 180.0 Auto
+	{ Timer is started after freeing this prisoner, then once it has expired, clean up is viable when possible}
+EndGroup
 
-bool Property bUseRegisteredAliasesAsCaptors = false Auto const
-{ if TRUE, will consider all registered aliases on quest's REScript as captors/prisoners for setting factions when prisoner is freed }
-int Property CaptorGroupID = -1 Auto const
-{ if > -1, this is the group ID that will look for in registered aliases when setting factions - should be Captors group 
-  if == -1, all registered aliases will have their factions set }
+Group AutoFillProperties
+	Keyword Property RESharedDialoguePrisonerSetFree Auto const
 
-int Property StageToSetWhenFreed = -1 auto const
-{ this stage will be set when the prisoner is freed }
-bool Property bSetStageOnlyIfPlayerFreed = true auto const
-{ false is always set stage when prisoner is freed }
+	Message Property REPrisonerMessageBox Auto const
+	Faction Property BoundCaptiveFaction Auto const
+	Faction Property CaptiveFaction Auto Const
 
-group CaptiveLocationData
-	LocationAlias property CaptiveLocation auto const
-	{ optional - when actor loads while in this location (and still a captive) will be snapped into the captive marker }
+	RefCollectionAlias Property Captors Auto const
+	{ Try to get this from quest script REScript }
+EndGroup
 
-	ReferenceAlias property CaptiveMarker auto const
-	{ optional - captive marker to snap prisoner to onLoad }
-endGroup
+
 
 bool bound = True
 
 int iDoNothing = 0
 int iSetFree = 1
 int iSetFreeShareItems = 2
+int CleanupTimerID = 999
+bool ReadyToCleanup = false
+
+Event OnAliasInit()
+	GetActorReference().AddToFaction(BoundCaptiveFaction)
+EndEvent
 
 Event OnLoad()
 	if bound
-		GetActorReference().ChangeAnimFlavor(AnimFlavorHandsBound)
+		; TODO when we have it
+		;GetActorReference().playIdle(OffsetBoundStandingStart)
+
+		;DL added this for short term use
+		GetActorReference().SetRestrained()
 		; begin RealHandcuffs changes
+        Actor prisoner = GetActorReference()
+		If (_prisonerFurniture != None)
+RealHandcuffs:Log.Error("snapping", none)
+			_prisonerFurniture.WaitFor3DLoad()
+			prisoner.SnapIntoInteraction(_prisonerFurniture)
+			_prisonerFurniture = None
+		EndIf
 		SetResetNoPackage(false)
 		CreateAndEquipHandcuffs()
+		ObjectReference currentFurniture = prisoner.GetFurnitureReference()
+		If (IsPrisonerFurniture(currentFurniture))
+			currentFurniture.WaitFor3DLoad()
+			StartPrisonerPose(currentFurniture, false)
+		EndIf
 		; end RealHandcuffs changes
 	EndIf
 	RegisterForHitEvent(self, Game.GetPlayer())
-	if CaptiveLocation && CaptiveMarker
-		actor prisoner = GetActorRef()
-		if prisoner && prisoner.GetCurrentLocation() == CaptiveLocation.GetLocation() && prisoner.IsInFaction(CaptiveFaction)
-			prisoner.MoveTo(CaptiveMarker.GetRef())
-			prisoner.SetRestrained(true)
-		endif
-	endif
 EndEvent
 
-; begin RealHandcuffs changes
 Event OnUnload()
+	; begin RealHandcuffs changes
 	If (bound)
 		UnequipAndDestroyHandcuffs()
 		SetResetNoPackage(true)
 	EndIf
+	; end RealHandcuffs changes
+	if DisableOnUnload && ReadyToCleanup
+		ClearFactions()
+		GetReference().Disable()
+		GetReference().DeleteWhenAble()
+	endif
 EndEvent
-; end RealHandcuffs changes
+
+Event OnTimer(int aiTimerID)
+	if aiTimerID == CleanupTimerID
+		ReadyToCleanup = true
+	endif
+EndEvent
 
 Event OnActivate(ObjectReference akActionRef)
 
@@ -91,7 +126,7 @@ Event OnActivate(ObjectReference akActionRef)
 				Return
 			EndIf
 			; end RealHandcuffs changes
-			FreePrisoner(ActorRef, OpenInventory = False)
+			FreePrisoner(ActorRef, OpenPrisonerInventory = False)
 			
 		elseif result == iSetFreeShareItems
 			debug.Notification("SET FREE SHARE ITEMS")	
@@ -100,7 +135,7 @@ Event OnActivate(ObjectReference akActionRef)
 				Return
 			EndIf
 			; end RealHandcuffs changes
-			FreePrisoner(ActorRef, OpenInventory = True)		
+			FreePrisoner(ActorRef, OpenPrisonerInventory = True)		
 			
 		EndIf
 	
@@ -108,120 +143,80 @@ Event OnActivate(ObjectReference akActionRef)
 EndEvent
 
 Event OnHit(ObjectReference akTarget, ObjectReference akAggressor, Form akSource, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked, string asMaterialName)
-	; begin RealHandcuffs changes
-	If (IsWearingHandcuffs())
-		RegisterForHitEvent(self, Game.GetPlayer())
-		Return ; unable to fight back
-	EndIf
-	; end RealHandcuffs changes
   	if AkAggressor == game.getPlayer()
-		Game.GetPlayer().AddToFaction(REPrisonerFreedCombatPrisonerFaction)
-		AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction)
+		;Game.GetPlayer().AddToFaction(REPrisonerFreedCombatPrisonerFaction)
+		;AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction)
 	endif
 	RegisterForHitEvent(self, Game.GetPlayer())
 endEvent
 
 
-Function FreePrisoner(Actor ActorRef, bool playerIsLiberator= true, bool OpenInventory = False)
- 	debug.trace(self + "FreePrisoner(" + ActorRef + "," + playerIsLiberator + ", " + OpenInventory +")")	
+Function FreePrisoner(Actor ActorRef, bool playerIsLiberator= true, bool OpenPrisonerInventory = False)
+ 	debug.trace(self + "FreePrisoner(" + ActorRef + "," + playerIsLiberator + ", " + OpenPrisonerInventory +")")	
 	; begin RealHandcuffs changes
 	SetResetNoPackage(true)
+	If (_prisonerFurniture != None)
+		StopPrisonerPose()
+	EndIf
 	If (IsWearingHandcuffs())
 		Return ; failure
 	EndIf
 	; end RealHandcuffs changes
-	ActorRef.ChangeAnimFlavor()	
-	ActorRef.RemoveFromFaction(CaptiveFaction)
-	ActorRef.AddToFaction(REPrisonerFreedFaction)
-	ActorRef.AddToFaction(REPrisonerFreedCombatPrisonerFaction)
-	; in case at captive marker
-	ActorRef.SetRestrained(false)
+	ActorRef.SetFactionRank(BoundCaptiveFaction, 1)
+
+	if AlsoRemoveFromCaptiveFaction
+		ActorRef.RemoveFromFaction(CaptiveFaction)
+	endif
+
+	;DL added this for short term use
+	GetActorReference().SetRestrained(false)
 
 	ActorRef.EvaluatePackage()
 	if playerIsLiberator
-		Game.GetPlayer().AddToFaction(REPrisonerFreedCombatPrisonerFaction)
+		;Game.GetPlayer().AddToFaction(REPrisonerFreedCombatPrisonerFaction)
 	EndIf
 	
-	if OpenInventory
+	if OpenPrisonerInventory
 		ActorRef.openInventory(True)
 	EndIf
 	
 	ActorRef.SayCustom(RESharedDialoguePrisonerSetFree)
 	bound = False
 
-	AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction)
+	;AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction)
 	
 	if StageToSetWhenFreed > -1
 		if playerIsLiberator || bSetStageOnlyIfPlayerFreed == false
-			GetOwningQuest().SetStage(StageToSetWhenFreed)
+			if myQuest
+				myQuest.SetStage(StageToSetWhenFreed)
+			else
+				GetOwningQuest().SetStage(StageToSetWhenFreed)
+			endif
 		endif
 	endif
 	ActorRef.EvaluatePackage()
-		
+
+	;Start The clean up timer, actor will not be clean up till after this
+	StartTimer(CleanUpTime, CleanupTimerID)
 EndFunction
 
 ;call when quest shuts down
 Function ClearFactions()
 
-	Game.GetPlayer().RemoveFromFaction(REPrisonerFreedCombatPrisonerFaction)
-
-	TryToRemoveFromFaction(CaptiveFaction)
-	TryToRemoveFromFaction(REPrisonerFreedCombatCaptorFaction)
+	;Game.GetPlayer().RemoveFromFaction(REPrisonerFreedCombatPrisonerFaction)
+	TryToRemoveFromFaction(BoundCaptiveFaction)
+	;TryToRemoveFromFaction(REPrisonerFreedCombatCaptorFaction)
 	
-	AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction, false)
-EndFunction
+	;AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction, false)
 
-; function to add/remove faction from all captors
-function AddRemoveCaptorFaction(Faction theFaction, bool bAddFaction = true)
-	if Captors
-		if bAddFaction
-			Captors.AddToFaction(theFaction)
-		else
-			Captors.RemoveFromFaction(theFaction)
+	if StageToSetOnCleanUp > -1
+		if bSetStageOnlyIfPlayerFreed == false
+			if myQuest
+				myQuest.SetStage(StageToSetOnCleanUp)
+			else
+				GetOwningQuest().SetStage(StageToSetOnCleanUp)
+			endif
 		endif
-	EndIf
-	; registered aliases?
-	if bUseRegisteredAliasesAsCaptors
-		; get RE quest script
-		REScript myQuestScript = GetOwningQuest() as REScript
-		if myQuestScript
-			; get registered aliases
-			if myQuestScript.registeredAliasCount > 0
-				int i = 0
-				while i < myQuestScript.registeredAliasCount
-					REAliasScript theAlias = myQuestScript.RegisteredAliases[i] as REAliasScript
-					if theAlias
-						; if I'm in the captor group, OR we don't care about group ID, add to freed faction
-						if (CaptorGroupID == -1 || theAlias.GroupIndex == CaptorGroupID) && theAlias.GetRef() != self.GetRef()
-							if bAddFaction
-								theAlias.TryToAddToFaction(theFaction)
-							else
-								theAlias.TryToRemoveFromFaction(theFaction)
-							endif
-						EndIf
-					EndIf
-					i += 1
-				endWhile
-			endif
-			; get registered alias collections
-			if myQuestScript.registeredRefCollectionCount > 0
-				int i = 0
-				while i < myQuestScript.registeredRefCollectionCount
-					RECollectionAliasScript theCollection = myQuestScript.RegisteredCollectionAliases[i] as RECollectionAliasScript
-					if theCollection
-						; if I'm in the captor group, OR we don't care about group ID, add to freed faction
-						if (CaptorGroupID == -1 || theCollection.GroupIndex == CaptorGroupID) && theCollection.Find(GetRef()) == -1
-							if bAddFaction
-								theCollection.AddToFaction(theFaction)
-							else
-								theCollection.RemoveFromFaction(theFaction)
-							endif
-						EndIf
-					endif
-					i += 1
-				endWhile
-			endif
-		EndIf
 	endif
 EndFunction
 
@@ -319,3 +314,45 @@ Function UnequipAndDestroyHandcuffs()
         EndIf
     EndIf
 EndFunction
+
+Bool Function IsPrisonerFurniture(ObjectReference akFurniture) Global
+    If (akFurniture == None)
+        Return false
+    EndIf
+    Int baseId = akFurniture.GetBaseObject().GetFormID()
+    return baseId == 0x000D9C37 ; NpcPrisonerFloorSit
+EndFunction
+
+ObjectReference _prisonerFurniture
+
+Function StartPrisonerPose(ObjectReference akFurniture, Bool playAnimation)
+    _prisonerFurniture = akFurniture
+    Actor prisoner = GetActorReference()
+    Action actionInteractionExitQuick = Game.GetForm(0x0002248C) as Action
+    prisoner.PlayIdleAction(actionInteractionExitQuick)
+    Idle kneelSitPose = Game.GetFormFromFile(0x00000f, "RealHandcuffs.esp") as Idle
+    prisoner.PlayIdle(kneelSitPose)
+    prisoner.TranslateToRef(akFurniture, 32)
+EndFunction
+
+ObjectReference Function StopPrisonerPose()
+    Actor prisoner = GetActorReference()
+    Idle kneelSitToStand = Game.GetFormFromFile(0x00000e, "RealHandcuffs.esp") as Idle
+    prisoner.PlayIdle(kneelSitToStand)
+    prisoner.TranslateToRef(_prisonerFurniture, prisoner.GetDistance(_prisonerFurniture) / 2.0)
+    ObjectReference prisonerFurniture = _prisonerFurniture
+    _prisonerFurniture = None
+    Return prisonerFurniture
+EndFunction
+
+Event OnSit(ObjectReference akFurniture)
+    If (IsPrisonerFurniture(akFurniture))
+        StartPrisonerPose(akFurniture, true)
+    EndIf
+EndEvent
+
+Event OnPackageChange(Package akOldPackage)
+    If (_prisonerFurniture != None)
+        StopPrisonerPose()
+    EndIf
+EndEvent

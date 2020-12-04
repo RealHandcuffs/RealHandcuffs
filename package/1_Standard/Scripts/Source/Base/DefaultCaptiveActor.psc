@@ -67,8 +67,19 @@ Event OnLoad()
 		SetRestrained()
 		SetFactionRank(BoundCaptiveFaction, 0)
 		; begin RealHandcuffs changes
-		CreateAndEquipHandcuffs()
+		If (_prisonerFurniture != None)
+RealHandcuffs:Log.Error("snapping", none)
+			_prisonerFurniture.WaitFor3DLoad()
+			SnapIntoInteraction(_prisonerFurniture)
+			_prisonerFurniture = None
+		EndIf
 		SetResetNoPackage(false)
+		CreateAndEquipHandcuffs()
+		ObjectReference currentFurniture = GetFurnitureReference()
+		If (IsPrisonerFurniture(currentFurniture))
+			currentFurniture.WaitFor3DLoad()
+			StartPrisonerPose(currentFurniture, false)
+		EndIf
 		; end RealHandcuffs changes
 	EndIf
 	RegisterForHitEvent(self, Game.GetPlayer())
@@ -144,6 +155,9 @@ Function FreePrisoner(Actor ActorRef, bool playerIsLiberator= true, bool OpenPri
  	debug.trace(self + "FreePrisoner(" + ActorRef + "," + playerIsLiberator + ", " + OpenPrisonerInventory +")")	
 	; begin RealHandcuffs changes
 	SetResetNoPackage(true)
+	If (_prisonerFurniture != None)
+		StopPrisonerPose()
+	EndIf
 	If (IsWearingHandcuffs())
 		Return ; failure
 	EndIf
@@ -217,11 +231,10 @@ Function SetResetNoPackage(Bool reset)
     Keyword noPackage = Game.GetFormFromFile(0x000860, "RealHandcuffs.esp") as Keyword
     If (noPackage != None)
         If (reset)
-            Self.ResetKeyword(noPackage)
+            ResetKeyword(noPackage)
         Else
-            Self.AddKeyword(noPackage)
+            AddKeyword(noPackage)
         EndIf
-        Self.EvaluatePackage()
     EndIf
 EndFunction
 
@@ -296,3 +309,43 @@ Function UnequipAndDestroyHandcuffs()
         EndIf
     EndIf
 EndFunction
+
+Bool Function IsPrisonerFurniture(ObjectReference akFurniture) Global
+    If (akFurniture == None)
+        Return false
+    EndIf
+    Int baseId = akFurniture.GetBaseObject().GetFormID()
+    return baseId == 0x000D9C37 ; NpcPrisonerFloorSit
+EndFunction
+
+ObjectReference _prisonerFurniture
+
+Function StartPrisonerPose(ObjectReference akFurniture, Bool playAnimation)
+    _prisonerFurniture = akFurniture
+    Action actionInteractionExitQuick = Game.GetForm(0x0002248C) as Action
+    PlayIdleAction(actionInteractionExitQuick)
+    Idle kneelSitPose = Game.GetFormFromFile(0x00000f, "RealHandcuffs.esp") as Idle
+    PlayIdle(kneelSitPose)
+    TranslateToRef(akFurniture, 32)
+EndFunction
+
+ObjectReference Function StopPrisonerPose()
+    Idle kneelSitToStand = Game.GetFormFromFile(0x00000e, "RealHandcuffs.esp") as Idle
+    PlayIdle(kneelSitToStand)
+    TranslateToRef(_prisonerFurniture, GetDistance(_prisonerFurniture) / 2.0)
+    ObjectReference prisonerFurniture = _prisonerFurniture
+    _prisonerFurniture = None
+    Return prisonerFurniture
+EndFunction
+
+Event OnSit(ObjectReference akFurniture)
+    If (IsPrisonerFurniture(akFurniture))
+        StartPrisonerPose(akFurniture, true)
+    EndIf
+EndEvent
+
+Event OnPackageChange(Package akOldPackage)
+    If (_prisonerFurniture != None)
+        StopPrisonerPose()
+    EndIf
+EndEvent
