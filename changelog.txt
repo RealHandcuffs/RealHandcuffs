@@ -490,4 +490,4 @@ various small improvements
 - put handcuffs on captives in some vanilla scenes and random encountes (only in standard edition, not in lite edition)
 - JB Integration: allow enslaving NPCs by equipping shock collars on them (requires confirmation by default, setting in shock collar MCM page)
 - fix a race condition preventing correct transfer of multiple items (e.g. handcuffs and collar) to clones
-- Small ThirdPartApi fix and improvement
+- small ThirdPartApi fix and improvement
