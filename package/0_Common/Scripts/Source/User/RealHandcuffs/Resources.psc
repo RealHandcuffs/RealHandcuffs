@@ -214,6 +214,8 @@ Message Property MsgBoxNpcEquipRobcoShockCollarMale Auto Const Mandatory        
 Message Property MsgBoxNpcManualPipBoyTerminalMode Auto Const Mandatory                                 ; 0: OK
 Message Property MsgBoxNpcRobcoShockCollarEquippedFemale Auto Const Mandatory                           ; 0: connect pip-boy, 1: abort
 Message Property MsgBoxNpcRobcoShockCollarEquippedMale Auto Const Mandatory                             ; 0: connect pip-boy, 1: abort
+Message Property MsgBoxNpcRobcoShockCollarFemaleLockedEnslave Auto Const Mandatory                      ; 0: Enslave using JB, 1: abort
+Message Property MsgBoxNpcRobcoShockCollarMaleLockedEnslave Auto Const Mandatory                        ; 0: Enslave using JB, 1: abort
 Message Property MsgBoxNpcUnlockHandcuffsBrokenNoKeyFemale Auto Const Mandatory                         ; 0: try to pick lock, 1: abort
 Message Property MsgBoxNpcUnlockHandcuffsBrokenNoKeyFemaleLPSkillNotHighEnough Auto Const Mandatory     ; 0: abort
 Message Property MsgBoxNpcUnlockHandcuffsBrokenNoKeyMale Auto Const Mandatory                           ; 0: try to pick lock, 1: abort

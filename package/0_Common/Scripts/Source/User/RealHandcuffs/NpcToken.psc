@@ -492,6 +492,10 @@ Event Actor.OnDeath(Actor sender, Actor akKiller)
         Actor clone = GetLinkedRef(Library.Resources.ClonedTarget) as Actor
         If (clone != None)
             RealHandcuffs:Log.Info("Moving restaints from " + RealHandcuffs:Log.FormIdAsString(oldTarget) + " " + oldTarget.GetDisplayName() + " to clone " + RealHandcuffs:Log.FormIdAsString(clone) + " " + clone.GetDisplayName(), Library.Settings)
+            RealHandcuffs:ActorToken token = Library.TryGetActorToken(clone)
+            If (token != None)
+                token.RefreshEffectsAndAnimations(true, None)  ; they might be wrong because of parallel events from JB's inventory transfer function
+            EndIf
             Int index = 0
             While (index < Restraints.Length)
                 RealHandcuffs:RestraintBase restraint = Restraints[index]

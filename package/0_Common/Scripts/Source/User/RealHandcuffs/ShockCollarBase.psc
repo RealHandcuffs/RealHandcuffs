@@ -93,12 +93,32 @@ Bool Function EquipInteraction(Actor target)
         EndIf
     Else
         Int selection
-        If (Library.IsFemale(target))
+        Bool isFemale = Library.IsFemale(target)
+        If (isFemale)
             selection = Library.Resources.MsgBoxNpcEquipRobcoShockCollarFemale.Show()
         Else
             selection = Library.Resources.MsgBoxNpcEquipRobcoShockCollarMale.Show()
         EndIf
         equipped = (selection == 1 || selection == 2)
+        If (equipped && Library.Settings.JBEnslaveByEquippingCollar != 2 && CanBeUsedForEnslavement() && Library.SoftDependencies.CanBeJustBusinessEnslaved(target))
+            Int enslaveSelection
+            If (Library.Settings.JBEnslaveByEquippingCollar == 0)
+                enslaveSelection = 0
+            ElseIf (isFemale)
+                enslaveSelection = Library.Resources.MsgBoxNpcRobcoShockCollarFemaleLockedEnslave.Show()
+            Else
+                enslaveSelection = Library.Resources.MsgBoxNpcRobcoShockCollarMaleLockedEnslave.Show()
+            EndIf
+            If (enslaveSelection == 0)
+                RealHandcuffs:Log.Info("Trying to enslave  " + RealHandcuffs:Log.FormIdAsString(target) + " " + target.GetDisplayName() + ".", Library.Settings)
+                If (UI.IsMenuOpen("ContainerMenu"))
+                    UI.CloseMenu("ContainerMenu")
+                EndIf
+                Var[] kArgs = new Var[1]
+                kArgs[0] = target
+                Library.SoftDependencies.CallFunctionNoWait("JustBusinessEnslave", kArgs)
+            EndIf
+        EndIf
         If (selection == 0 || selection == 2)
             If (ScheduleShowTerminalOnPipboyInteraction(target, false, true))
                 Return equipped ; interaction continues, don't clear interaction type
@@ -849,6 +869,13 @@ EndFunction
 ;
 Int Function GetSupportedTriggerModes()
     Return TerminalData.SimpleTrigger
+EndFunction
+
+;
+; Check if the collar can be used for enslavement.
+;
+Bool Function CanBeUsedForEnslavement()
+    Return false
 EndFunction
 
 ;

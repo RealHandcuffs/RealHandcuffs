@@ -6,10 +6,18 @@ Scriptname RealHandcuffs:McmHotkeysQuest extends Quest Conditional
 RealHandcuffs:Library Property Library Auto Const Mandatory
 
 RealHandcuffs:ChangePosePerk Property ChangePose Auto Const Mandatory
+Keyword Property PlayerTeammateFlagRemoved Auto Const Mandatory
+ActorValue Property WorkshopPlayerOwned Auto Const Mandatory
+Keyword Property ActorTypeNPC Auto Const Mandatory
+Keyword Property WorkshopLinkHome Auto Const Mandatory
+Message Property NpcInteraction Auto Const Mandatory
 Message Property NoActorFoundUnderCrosshair Auto Const Mandatory
 Message Property NoActionAvailableForActorUnderCrosshair Auto Const Mandatory
 
 Bool Property ShowPoseActivation Auto Conditional
+Bool Property EnableQuickInventoryInteraction Auto
+Bool Property IsPosable Auto Conditional
+Bool Property HasQuickInventory Auto Conditional
 
 ;
 ; Fallback for "interact with bonds" action in case tab does not work.
@@ -37,10 +45,24 @@ Function InteractWithNpc()
         NoActorFoundUnderCrosshair.Show()
         Return
     EndIf
-    Bool posable = IsPosable(targetActor)
-    If (posable)
-        ChangePose.ChangePoseInteractive(targetActor)
-        Return
+    IsPosable = IsPosable(targetActor)
+    If (!EnableQuickInventoryInteraction)
+        ; all optional interactions are disable, skip selection dialogue
+        If (IsPosable)
+            ChangePose.ChangePoseInteractive(targetActor)
+            Return
+        EndIf
+    Else
+        HasQuickInventory = IsValidQuickInventoryTarget(targetActor)
+        If (IsPosable || HasQuickInventory)
+            Int selection = NpcInteraction.Show()
+            If (selection == 0)
+                ChangePose.ChangePoseInteractive(targetActor)
+            ElseIf (selection == 1)
+                targetActor.OpenInventory(1)
+            EndIf
+            Return
+        EndIf
     EndIf
     NoActionAvailableForActorUnderCrosshair.Show()
 EndFunction
@@ -51,4 +73,23 @@ EndFunction
 ;
 Bool Function IsPosable(Actor akActor)
     Return akActor.HasKeyword(Library.Resources.Posable)
+EndFunction
+
+
+;
+; Check if an actor is a valid target for the quick-inventory action.
+;
+Bool Function IsValidQuickInventoryTarget(Actor akActor)
+    If (akActor.HasKeyword(ActorTypeNPC) && Game.GetPlayer().GetDistance(akActor) <= 256)
+        If (akActor.IsPlayerTeammate() || akActor.HasKeyword(PlayerTeammateFlagRemoved))
+            Return true
+        EndIf
+        If (Library.SoftDependencies.IsSlave(akActor))
+             Return !Library.SoftDependencies.IsEscapedSlave(akActor)
+        EndIf
+        If (akActor.GetValue(WorkshopPlayerOwned) >= 1 && akActor.GetLinkedRef(WorkshopLinkHome) != None && !akActor.IsHostileToActor(Game.GetPlayer()))
+            Return true
+        EndIf
+    EndIf
+    Return false
 EndFunction

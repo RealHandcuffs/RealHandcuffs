@@ -368,7 +368,18 @@
           "type": "stepper",
           "valueOptions": {
             "sourceType": "ModSettingInt",
-            "options": ["Yes", "Only On Exhaustion", "No"]
+            "options": ["Yes", "Only on Exhaustion", "No"]
+          }
+        },
+        {
+          "groupCondition": { "AND": [2, 3] },
+          "id": "iJBEnslaveByEquippingCollar:ShockCollars",
+          "text": "Enslave NPCs by Equipping Shock Collar",
+          "help": "Default: Ask for Confirmation",
+          "type": "stepper",
+          "valueOptions": {
+            "sourceType": "ModSettingInt",
+            "options": ["Always", "Ask for Confirmation", "Never"]
           }
         }
       ]
@@ -406,6 +417,15 @@
           "id": "bShowPoseAction:Hotkeys",
           "text": "Show POSE Activation",
           "help": "Disable and use hotkey for compatibility with activations from other mods (e.g. QuickTrade).",
+          "type": "switcher",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "id": "bEnableQuickInventoryInteraction:Hotkeys",
+          "text": "Enable Quick Inventory Interaction",
+          "help": "Enable quick inventory interaction (on hotkey only) for eligible NPCs.",
           "type": "switcher",
           "valueOptions": {
             "sourceType": "ModSettingBool"

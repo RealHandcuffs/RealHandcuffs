@@ -65,6 +65,7 @@ Group ShockCollars
     Bool Property AddCollarsToJBSlaves Auto
     Float Property ShockCollarJBSubmissionWeight Auto   ; 0.0 to 3.0
     Int Property CastJBMarkSpellOnTaserVictims Auto     ; 0: yes, 1: only when causing exhaustion, 2: no
+    Int Property JBEnslaveByEquippingCollar Auto        ; 0: always, 1: ask for confirmation, 2: never
 EndGroup
 
 ;
@@ -78,6 +79,14 @@ Group Hotkey
         EndFunction
         Function Set(Bool value)
             McmHotkeysQuest.ShowPoseActivation = value
+        EndFunction
+    EndProperty
+    Bool Property EnableQuickInventoryInteraction ; property forwarded to McmHotkeysQuest
+        Bool Function Get()
+            Return McmHotkeysQuest.EnableQuickInventoryInteraction
+        EndFunction
+        Function Set(Bool value)
+            McmHotkeysQuest.EnableQuickInventoryInteraction = value
         EndFunction
     EndProperty
 EndGroup
@@ -176,7 +185,7 @@ EndFunction
 ; Apply new shock collar settings. Returns true if any settings have been modified.
 ; This will not fire OnSettingsChanged, the caller has to call FireSettingsChangedEvent if true was returned!
 ; 
-Bool Function ApplyShockCollarSettings(Int newShockLethality, Int newPipboyTerminalMode, Bool newAddCollarsToJBSlaves, Float newShockCollarJBSubmissionWeight, Int newCastJBMarkSpellOnTaserVictims)
+Bool Function ApplyShockCollarSettings(Int newShockLethality, Int newPipboyTerminalMode, Bool newAddCollarsToJBSlaves, Float newShockCollarJBSubmissionWeight, Int newCastJBMarkSpellOnTaserVictims, Int newJBEnslaveByEquippingCollar)
     Bool changed = false
     If (SettingsUnlocked && ShockLethality != newShockLethality)
         ShockLethality = newShockLethality
@@ -198,6 +207,10 @@ Bool Function ApplyShockCollarSettings(Int newShockLethality, Int newPipboyTermi
         CastJBMarkSpellOnTaserVictims = newCastJBMarkSpellOnTaserVictims
         changed = true
     EndIf
+    If (SettingsUnlocked && JBEnslaveByEquippingCollar != newJBEnslaveByEquippingCollar)
+        JBEnslaveByEquippingCollar = newJBEnslaveByEquippingCollar
+        changed = true
+    EndIf
     Return changed
 EndFunction
 
@@ -205,10 +218,14 @@ EndFunction
 ; Apply new hotkey settings. Returns true if any settings have been modified.
 ; This will not fire OnSettingsChanged, the caller has to call FireSettingsChangedEvent if true was returned!
 ; 
-Bool Function ApplyHotkeySettings(Bool newShowPoseAction)
+Bool Function ApplyHotkeySettings(Bool newShowPoseAction, bool newEnableQuickInventoryInteraction)
     Bool changed = false
     If (ShowPoseAction != newShowPoseAction)
         ShowPoseAction = newShowPoseAction
+        changed = true
+    EndIf
+    If (EnableQuickInventoryInteraction != newEnableQuickInventoryInteraction)
+        EnableQuickInventoryInteraction = newEnableQuickInventoryInteraction
         changed = true
     EndIf
     Return changed
@@ -302,7 +319,8 @@ Bool Function RestoreDefaultShockCollarSettings()
     Bool defAddCollarsToJBSlaves = true
     Float defShockCollarJBSubmissionWeight = 1.0
     Int defCastJBMarkSpellOnTaserVictims = 1
-    Bool changed = ApplyShockCollarSettings(defShockLethality, defPipboyTerminalMode, defAddCollarsToJBSlaves, defShockCollarJBSubmissionWeight, defCastJBMarkSpellOnTaserVictims)
+    Int defJBEnslaveByEquippingCollar = 1
+    Bool changed = ApplyShockCollarSettings(defShockLethality, defPipboyTerminalMode, defAddCollarsToJBSlaves, defShockCollarJBSubmissionWeight, defCastJBMarkSpellOnTaserVictims, defJBEnslaveByEquippingCollar)
     If (changed)
         RealHandcuffs:Log.Info("Default shock collar settings restored.", Self)
     EndIf
@@ -317,7 +335,8 @@ EndFunction
 ;
 Bool Function RestoreDefaultHotkeySettings()
     Bool defShowPoseAction = true
-    Bool changed = ApplyHotkeySettings(defShowPoseAction)
+    Bool defEnableQuickInventoryInteraction = false
+    Bool changed = ApplyHotkeySettings(defShowPoseAction, defEnableQuickInventoryInteraction)
     If (changed)
         RealHandcuffs:Log.Info("Default hotkey settings restored.", Self)
     EndIf
@@ -390,7 +409,8 @@ Bool Function LoadMcmShockCollarSettings()
     Bool mcmAddCollarsToJBSlaves = MCM.GetModSettingBool("RealHandcuffs", "bAddCollarsToJBSlaves:ShockCollars")
     Float mcmShockCollarJBSubmissionWeight = MCM.GetModSettingFloat("RealHandcuffs", "fShockCollarJBSubmissionWeight:ShockCollars")
     Int mcmCastJBMarkSpellOnTaserVictims = MCM.GetModSettingInt("RealHandcuffs", "iCastJBMarkSpellOnTaserVictims:ShockCollars")
-    If (ApplyShockCollarSettings(mcmShockLethality, mcmPipboyTerminalMode, mcmAddCollarsToJBSlaves, mcmShockCollarJBSubmissionWeight, mcmCastJBMarkSpellOnTaserVictims))
+    Int mcmJBEnslaveByEquippingCollar = MCM.GetModSettingInt("RealHandcuffs","iJBEnslaveByEquippingCollar:ShockCollars")
+    If (ApplyShockCollarSettings(mcmShockLethality, mcmPipboyTerminalMode, mcmAddCollarsToJBSlaves, mcmShockCollarJBSubmissionWeight, mcmCastJBMarkSpellOnTaserVictims, mcmJBEnslaveByEquippingCollar))
         RealHandcuffs:Log.Info("Shock collar settings changed from MCM.", Self)
         Return true
     EndIf
@@ -403,7 +423,8 @@ EndFunction
 ;
 Bool Function LoadMcmHotkeySettings()
     Bool mcmShowPoseAction = MCM.GetModSettingBool("RealHandcuffs", "bShowPoseAction:Hotkeys")
-    If (ApplyHotkeySettings(mcmShowPoseAction))
+    Bool mcmEnableQuickInventoryInteraction = MCM.GetModSettingBool("RealHandcuffs", "bEnableQuickInventoryInteraction:Hotkeys")
+    If (ApplyHotkeySettings(mcmShowPoseAction, mcmEnableQuickInventoryInteraction))
         RealHandcuffs:Log.Info("Hotkey settings changed from MCM.", Self)
         Return true
     EndIf
@@ -500,6 +521,10 @@ Bool Function SaveMcmShockCollarSettings()
         MCM.SetModSettingInt("RealHandcuffs", "iCastJBMarkSpellOnTaserVictims:ShockCollars", CastJBMarkSpellOnTaserVictims)
         changed = true
     EndIf
+    If (SettingsUnlocked && MCM.GetModSettingInt("RealHandcuffs", "iJBEnslaveByEquippingCollar:ShockCollars") != JBEnslaveByEquippingCollar)
+        MCM.SetModSettingInt("RealHandcuffs", "iJBEnslaveByEquippingCollar:ShockCollars", JBEnslaveByEquippingCollar)
+        changed = true
+    EndIf
     Return changed
 EndFunction
     
@@ -510,6 +535,10 @@ Bool Function SaveMcmHotkeySettings()
     Bool changed = false
     If (MCM.GetModSettingBool("RealHandcuffs", "bShowPoseAction:Hotkeys") != ShowPoseAction)
         MCM.SetModSettingBool("RealHandcuffs", "bShowPoseAction:Hotkeys", ShowPoseAction)
+        changed = true
+    EndIf
+    If (MCM.GetModSettingBool("RealHandcuffs", "bEnableQuickInventoryInteraction:Hotkeys") != EnableQuickInventoryInteraction)
+        MCM.SetModSettingBool("RealHandcuffs", "bEnableQuickInventoryInteraction:Hotkeys", EnableQuickInventoryInteraction)
         changed = true
     EndIf
     Return changed

@@ -482,3 +482,12 @@ allow choosing slot when installing devious devices compatibility plugin
 Version 0.4.9
 =============
 clean masters of JB compatibility patch
+
+Version 0.4.10
+==============
+various small improvements
+- add quick inventory interaction (disbled by default, can be enabled in hotkeys MCM page)
+- put handcuffs on captives in some vanilla scenes and random encountes (only in standard edition, not in lite edition)
+- JB Integration: allow enslaving NPCs by equipping shock collars on them (requires confirmation by default, setting in shock collar MCM page)
+- fix a race condition preventing correct transfer of multiple items (e.g. handcuffs and collar) to clones
+- Small ThirdPartApi fix and improvement
