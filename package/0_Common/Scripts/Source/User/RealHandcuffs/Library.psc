@@ -28,6 +28,7 @@ Weapon Property RemoteTrigger Auto Const Mandatory
 InputEnableLayer _inputLayer
 Form _originalCommandModeActivatePackage
 Form _originalCommandModeTravelPackage
+Bool _createTokenLock
 
 ;
 ; A 'enum' for the possible impacts of wearing a restraint.
@@ -178,13 +179,21 @@ RealHandcuffs:ActorToken Function GetOrCreateActorToken(Actor target)
         token = player.PlaceAtMe(tokenObject, 1, true, true, false) as RealHandcuffs:ActorToken ; force persistent reference
         token.EnableNoWait()
         token.Initialize(target)
+        Int waitCount = 50 ; prevent endless wait in case of stuck lock
+        While (_createTokenLock && waitCount >= 0)
+            target.GetPropertyValue("X") ; yield by calling latent function
+            waitCount -= 1
+        EndWhile
+        _createTokenLock = true
         RealHandcuffs:ActorToken concurrentToken = target.GetLinkedRef(LinkedActorToken) as RealHandcuffs:ActorToken
         If (concurrentToken == None)
             target.SetLinkedRef(token, LinkedActorToken)
+            _createTokenLock = false
             If (Settings.InfoLoggingEnabled)
                 RealHandcuffs:Log.Info("Created token for " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + ".", Settings)
             EndIf
         Else
+            _createTokenLock = false
             RealHandcuffs:Log.Info("Destroying concurrently created token for " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + ".", Settings)
             token.Uninitialize()
             token = concurrentToken
