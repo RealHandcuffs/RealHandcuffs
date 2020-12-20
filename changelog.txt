@@ -491,3 +491,9 @@ various small improvements
 - JB Integration: allow enslaving NPCs by equipping shock collars on them (requires confirmation by default, setting in shock collar MCM page)
 - fix a race condition preventing correct transfer of multiple items (e.g. handcuffs and collar) to clones
 - small ThirdPartApi fix and improvement
+
+Version 0.4.11 TODO
+===================
+TODO
+- fix JB quick-enslave of Crime And Punishment surrendered NPCS
+- prevent JB quick-enslave of Crime And Punishment prisoners

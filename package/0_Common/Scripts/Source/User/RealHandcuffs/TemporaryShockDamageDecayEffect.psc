@@ -133,7 +133,7 @@ Function HandleState()
                 EndIf
             EndIf
         EndIf
-        If (Library.SoftDependencies.JBCompatibilityActive && Library.Settings.ShockCollarJBSubmissionWeight > 0.0 && (Library.SoftDependencies.IsSlave(_target) || Library.SoftDependencies.IsEscapedSlave(_target)))
+        If (Library.SoftDependencies.JBCompatibilityActive && Library.Settings.ShockCollarJBSubmissionWeight > 0.0 && (Library.SoftDependencies.IsJBSlave(_target) || Library.SoftDependencies.IsEscapedJBSlave(_target)))
             ; code smell: should find a better way than hardcoding the shock damage values here, but we need to know them such that we can catch up for the missed intervals
             Float submissionValue = shockAsHealthPercentage * Library.Settings.ShockCollarJBSubmissionWeight * 0.5
             If (shockCausedBleedout)

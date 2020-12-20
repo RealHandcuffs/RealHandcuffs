@@ -28,7 +28,7 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
             Utility.Wait(0.1)
             akTarget.PlayIdleAction(Library.Resources.ActionBleedoutStart)
             _usingBleedoutAnimation = true
-        ElseIf (!akTarget.IsEssential() || (Library.SoftDependencies.IsSlave(akTarget) && !Library.SoftDependencies.IsEscapedSlave(akTarget)))
+        ElseIf (!akTarget.IsEssential() || (Library.SoftDependencies.IsJBSlave(akTarget) && !Library.SoftDependencies.IsEscapedJBSlave(akTarget)) || (Library.SoftDependencies.IsCAPPrisoner(akTarget) && ! Library.SoftDependencies.IsEscapedCAPPrisoner(akTarget)))
             ; use bleedout animation for non-essential NPCs and for regular slaves (even if essential)
             akTarget.PlayIdleAction(Library.Resources.ActionBleedoutStart)
             _usingBleedoutAnimation = true

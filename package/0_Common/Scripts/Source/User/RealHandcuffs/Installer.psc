@@ -326,6 +326,7 @@ State V1
                 index += 1
             EndIf
         EndWhile
+        RealHandcuffs:Log.Info("Handled " + index + " restrained NPCs.", Library.Settings)
         ; add perks
         If (!player.HasPerk(ChangePose))
             player.AddPerk(ChangePose)
@@ -464,6 +465,7 @@ State V1
                 index += 1
             EndIf
         EndWhile
+        RealHandcuffs:Log.Info("Handled " + index + " restrained NPCs.", Library.Settings)
         ; run third party compatibility plugin installers
         If (Library.SoftDependencies.JBCompatibilityActive)
             Library.SoftDependencies.JBCompatibilityMainQuest.CallFunction("RunInstallerTasks", new Var[0])

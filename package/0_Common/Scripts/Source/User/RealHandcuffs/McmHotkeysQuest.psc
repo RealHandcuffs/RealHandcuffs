@@ -84,8 +84,11 @@ Bool Function IsValidQuickInventoryTarget(Actor akActor)
         If (akActor.IsPlayerTeammate() || akActor.HasKeyword(PlayerTeammateFlagRemoved))
             Return true
         EndIf
-        If (Library.SoftDependencies.IsSlave(akActor))
-             Return !Library.SoftDependencies.IsEscapedSlave(akActor)
+        If (Library.SoftDependencies.IsJBSlave(akActor))
+             Return !Library.SoftDependencies.IsEscapedJBSlave(akActor)
+        EndIf
+        If (Library.SoftDependencies.IsCAPPrisoner(akActor))
+            Return !Library.SoftDependencies.IsEscapedCAPPrisoner(akActor)
         EndIf
         If (akActor.GetValue(WorkshopPlayerOwned) >= 1 && akActor.GetLinkedRef(WorkshopLinkHome) != None && !akActor.IsHostileToActor(Game.GetPlayer()))
             Return true

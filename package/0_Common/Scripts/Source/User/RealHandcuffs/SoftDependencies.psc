@@ -31,6 +31,7 @@ Group Plugins
     String Property CanarySaveFileMonitor      = "CanarySaveFileMonitor.esl" AutoReadOnly
     String Property WorkshopFramework          = "WorkshopFramework.esm" AutoReadOnly
     String Property PipPad                     = "PIP-Pad.esp" AutoReadOnly
+    String Property CrimeAndPunishment         = "Flashy_CrimeAndPunishment.esp" AutoReadOnly
 EndGroup
 
 ;
@@ -48,6 +49,7 @@ Group AvailablePlugins
     Bool Property SSConquerorAvailable Auto
     Bool Property WorkshopFrameworkAvailable Auto
     Bool Property PipPadAvailable Auto
+    Bool Property CrimeAndPunishmentAvailable Auto
 EndGroup
 
 ;
@@ -171,6 +173,15 @@ Group WorkshopFramework
 EndGroup
 
 ;
+; Forms used from Crime And Punishment
+;
+Group CrimeAndPunishment
+    Keyword Property RSEII_SurrenderToPlayer Auto
+    Keyword Property RSEII_PrisonerSettler Auto
+    Keyword Property RSEII_EscapedPrisoner Auto
+EndGroup
+
+;
 ; Refresh the third party dependencies when the game is loaded.
 ;
 Function RefreshOnGameLoad()
@@ -188,6 +199,7 @@ Function RefreshOnGameLoad()
     SSConquerorAvailable = GetSSConquerorForms()
     Bool CanarySaveFileMonitorAvailable = CheckForCanary()
     WorkshopFrameworkAvailable = GetWorkshopFrameworkForms()
+    CrimeAndPunishmentAvailable = GetCrimeAndPunishmentForms()
     PipPadAvailable = GetPipPadForms()
     SoftDependenciesLoading = false
     If (Library.Settings.InfoLoggingEnabled)
@@ -227,6 +239,9 @@ Function RefreshOnGameLoad()
         EndIf
         If (PipPadAvailable)
             list = AddToList(list, PipPad)
+        EndIf
+        If (CrimeAndPunishmentAvailable)
+            list = AddToList(list, CrimeAndPunishment)
         EndIf
         RealHandcuffs:Log.Info("Available soft dependencies: " + list, Library.Settings)
     EndIf
@@ -439,6 +454,20 @@ Bool Function GetWorkshopFrameworkForms()
 EndFunction
 
 ;
+; Get the forms used from Crime And Punishment
+;
+Bool Function GetCrimeAndPunishmentForms()
+    RSEII_SurrenderToPlayer = Game.GetFormFromFile(0x00DD5E, CrimeAndPunishment) as Keyword
+    If (RSEII_SurrenderToPlayer == None)
+        RSEII_PrisonerSettler = None
+        Return False
+    EndIf
+    RSEII_PrisonerSettler = Game.GetFormFromFile(0x02CE47, CrimeAndPunishment) as Keyword
+    RSEII_EscapedPrisoner = Game.GetFormFromFile(0x020062, CrimeAndPunishment) as Keyword
+    Return RSEII_PrisonerSettler != None && RSEII_EscapedPrisoner != None
+EndFunction
+
+;
 ; Get the forms used from Pip Pad
 ;
 Bool Function GetPipPadForms()
@@ -545,16 +574,16 @@ Bool Function IsInAafScene(Actor target)
 EndFunction
 
 ;
-; Check if an actor is a slave.
+; Check if an actor is a Just Business slave.
 ;
-Bool Function IsSlave(Actor target)
+Bool Function IsJBSlave(Actor target)
     Return JustBusinessAvailable && target.IsInFaction(JBSlaveFaction)
 EndFunction
 
 ;
-; Check if an actor is an escaped slave.
+; Check if an actor is an escaped Just Business slave.
 ;
-Bool Function IsEscapedSlave(Actor target)
+Bool Function IsEscapedJBSlave(Actor target)
     Return JustBusinessAvailable && target.IsInFaction(JBEscapeSlaveFaction)
 EndFunction
 
@@ -613,7 +642,16 @@ EndFunction
 ; Check if an actor is a valid victim for the JBMarkSpell.
 ;
 Bool Function IsValidJBMarkSpellVictim(Actor target)
-    Return JustBusinessAvailable && !target.HasKeyword(VanillaShockCollarTriggering) && target != Game.GetPlayer() && !target.IsDead() && !IsArmorRack(target) && !target.HasKeyword(ActorTypeRobot) && !target.HasKeyword(ActorTypeChild) && (target.HasKeyword(ActorTypeNPC) || target.HasKeyword(ActorTypeSuperMutant) || target.HasKeyword(ActorTypeSynth)) && !target.IsInFaction(JBSlaveFaction) && !target.HasMagicEffect(JBMarkEffect)
+    Form actorTypeTarget = target
+    If (CrimeAndPunishmentAvailable)
+        If (target.HasKeyword(RSEII_PrisonerSettler))
+            Return false ; don't convert Crime And Punishment prisoners to Just Business Slaves
+        EndIf
+        If (target.HasKeyword(RSEII_SurrenderToPlayer))
+            actorTypeTarget = target.GetRace() ; Crime And Punishment temporarily clears keywords on surrendered actors, check them on the race instead
+        EndIf
+    EndIf
+    Return JustBusinessAvailable && !target.HasKeyword(VanillaShockCollarTriggering) && target != Game.GetPlayer() && !target.IsDead() && !IsArmorRack(target) && !actorTypeTarget.HasKeyword(ActorTypeRobot) && !actorTypeTarget.HasKeyword(ActorTypeChild) && (actorTypeTarget.HasKeyword(ActorTypeNPC) || actorTypeTarget.HasKeyword(ActorTypeSuperMutant) || actorTypeTarget.HasKeyword(ActorTypeSynth)) && !target.IsInFaction(JBSlaveFaction) && !target.HasMagicEffect(JBMarkEffect)
 EndFunction
 
 ;
@@ -631,6 +669,20 @@ Bool Function IncrementJBSubmission(Actor target, Float value)
         EndIf
     EndIf
     Return false
+EndFunction
+
+;
+; Check if an actor is a Crime And Punishment prisoner.
+;
+Bool Function IsCAPPrisoner(Actor target)
+    Return CrimeAndPunishmentAvailable && target.HasKeyword(RSEII_PrisonerSettler)
+EndFunction
+
+;
+; Check if an actor is an escaped Crime And Punishment prisoner.
+;
+Bool Function IsEscapedCAPPrisoner(Actor target)
+    Return CrimeAndPunishmentAvailable && target.HasKeyword(RSEII_EscapedPrisoner)
 EndFunction
 
 ;
