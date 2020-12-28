@@ -67,12 +67,10 @@ Event OnLoad()
 		SetRestrained()
 		SetFactionRank(BoundCaptiveFaction, 0)
 		; begin RealHandcuffs changes
-		If (_prisonerFurniture != None)
-RealHandcuffs:Log.Error("snapping", none)
-			_prisonerFurniture.WaitFor3DLoad()
+		If (_prisonerFurniture != None && _prisonerFurniture.IsBoundGameObjectAvailable() && !_prisonerFurniture.IsDeleted() && !_prisonerFurniture.IsDisabled() && !_prisonerFurniture.IsDestroyed() && _prisonerFurniture.WaitFor3DLoad() && WaitFor3DLoad())
 			SnapIntoInteraction(_prisonerFurniture)
-			_prisonerFurniture = None
 		EndIf
+		_prisonerFurniture = None
 		SetResetNoPackage(false)
 		CreateAndEquipHandcuffs()
 		ObjectReference currentFurniture = GetFurnitureReference()

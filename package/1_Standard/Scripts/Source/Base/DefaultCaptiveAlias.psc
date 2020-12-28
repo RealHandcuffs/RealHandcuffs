@@ -67,12 +67,10 @@ Event OnLoad()
 		GetActorReference().SetRestrained()
 		; begin RealHandcuffs changes
         Actor prisoner = GetActorReference()
-		If (_prisonerFurniture != None)
-RealHandcuffs:Log.Error("snapping", none)
-			_prisonerFurniture.WaitFor3DLoad()
+		If (_prisonerFurniture != None && _prisonerFurniture.IsBoundGameObjectAvailable() && !_prisonerFurniture.IsDeleted() && !_prisonerFurniture.IsDisabled() && !_prisonerFurniture.IsDestroyed() && _prisonerFurniture.WaitFor3DLoad() && prisoner.WaitFor3DLoad())
 			prisoner.SnapIntoInteraction(_prisonerFurniture)
-			_prisonerFurniture = None
 		EndIf
+		_prisonerFurniture = None
 		SetResetNoPackage(false)
 		CreateAndEquipHandcuffs()
 		ObjectReference currentFurniture = prisoner.GetFurnitureReference()

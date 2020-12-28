@@ -380,8 +380,9 @@ Function RefreshEffectsAndAnimations(Bool forceRefresh, ObjectReference maybeNew
     Int restraintIndex = 0
     While (restraintIndex < _restraints.Length)
         RealHandcuffs:RestraintBase restraint = _restraints[restraintIndex]
-        If (restraint.GetContainer() != _target)
-            RealHandcuffs:Log.Warning("Removing " + restraint.GetDisplayName() + " impact from " + RealHandcuffs:Log.FormIdAsString(_target) + " " + _target.GetDisplayName() + ", restraint missing.", Library.Settings)
+        String impact = restraint.GetImpact()
+        If (restraint.GetContainer() != _target || impact == "")
+            RealHandcuffs:Log.Warning("Removing " + restraint.GetDisplayName() + " impact from " + RealHandcuffs:Log.FormIdAsString(_target) + " " + _target.GetDisplayName() + ", restraint missing or invalid.", Library.Settings)
             _restraints.Remove(restraintIndex, 1)
             If (_target == Game.GetPlayer())
                 Library.Settings.OnPlayerRestraintsChanged(Restraints)
@@ -396,7 +397,6 @@ Function RefreshEffectsAndAnimations(Bool forceRefresh, ObjectReference maybeNew
                     unequippedRestraints.Add(restraint)
                 EndIf
             EndIf
-            String impact = restraint.GetImpact()
             If (impact == Library.HandsBoundBehindBack)
                 handsBoundBehindBackRestraint = restraint
                 Keyword animation = restraint.GetMtAnimationForArms()
