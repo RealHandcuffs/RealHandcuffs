@@ -367,7 +367,7 @@ Function AssignActor(WorkshopNPCScript newActor = None)
         If (registeredActor != None && registeredActor != assignedActor)
             Unregister(registeredActor)
         EndIf
-        RegisterForRemoteEvent(assignedActor, "OnCommandModeGiveCommand")        
+        RegisterForRemoteEvent(assignedActor, "OnCommandModeGiveCommand")
         RealHandcuffs:NPCToken token = Library.TryGetActorToken(assignedActor) as RealHandcuffs:NPCToken
         If (token != None) ; may really be true
             ; the workshop events are not 100% reliable, so make sure the token knows
@@ -376,6 +376,10 @@ Function AssignActor(WorkshopNPCScript newActor = None)
         If (registeredActor != assignedActor)
             If (!DisablePoseInteraction)
                 assignedActor.AddKeyword(Library.Resources.Posable) ; do this even before the actor registers
+            EndIf
+            If (!GetParentCell().IsAttached())
+                Register(assignedActor)
+                FixPositionAndAnimation()
             EndIf
             assignedActor.EvaluatePackage(true)
         EndIf
