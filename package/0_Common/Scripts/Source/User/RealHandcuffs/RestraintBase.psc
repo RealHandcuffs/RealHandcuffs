@@ -69,6 +69,19 @@ Keyword Function GetMtAnimationForArms()
 EndFunction
 
 ;
+; Check whether the MT animation for the arms can be changed.
+;
+Bool Function MtAnimationForArmsCanBeCycled()
+    Return False
+EndFunction
+
+;
+; Try to cycle the MT animation for the arms - use the actor as target who is wearing the restraint, None if not worn.
+;
+Function CycleMtAnimationForArms(Actor target)
+EndFunction
+
+;
 ; Get the key that will unlock the restraint; None if there is no key. Note that the signature is different than
 ; the one in GetKey(), as we want to allow droppable MiscItem objects and not just undroppable keys.
 ; The returned value can change, e.g. depending on mods installed in the restraint.
@@ -293,6 +306,21 @@ EndFunction
 ;
 ; ----- End of functions that can be overridden in subclasses
 ;
+
+;
+; Get the mod of the restraint for the specified mod tag.
+;
+ObjectMod Function GetMod(Keyword modTag)
+    ObjectMod[] mods = GetAllMods()
+    Int index = 0
+    While (index < mods.Length)
+        If (Library.IsAddingKeyword(mods[index], modTag))
+            Return mods[index]
+        EndIf
+        index += 1
+    EndWhile
+    Return None
+EndFunction
 
 ;
 ; Replace the mod of the restraint for the specified mod tag. Returns true if the mod was replaced.

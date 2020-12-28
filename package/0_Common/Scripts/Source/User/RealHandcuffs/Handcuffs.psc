@@ -73,6 +73,39 @@ Function SetStateAfterEquip(Actor target, Bool interactive)
 EndFunction
 
 ;
+; Override: Check whether the MT animation for the arms can be changed.
+;
+Bool Function MtAnimationForArmsCanBeCycled()
+    Return Library.SoftDependencies.TortureDevicesAvailable || GetMod(Library.Resources.PoseTag) == ModArmsCuffedBehindBackTortureDevices
+EndFunction
+
+;
+; Override: Try to cycle the MT animation for the arms.
+;
+Function CycleMtAnimationForArms(Actor target)
+    ObjectMod poseMod = GetMod(Library.Resources.PoseTag)
+    ObjectMod newPoseMod = None
+    If (poseMod == ModArmsCuffedBehindBackRealHandcuffs)
+        If (Library.SoftDependencies.TortureDevicesAvailable)
+            newPoseMod = ModArmsCuffedBehindBackTortureDevices
+        EndIf
+    ElseIf (poseMod == ModArmsCuffedBehindBackTortureDevices)
+        newPoseMod = ModArmsCuffedBehindBackRealHandcuffs
+    Else
+        RealHandcuffs:Log.Warning("Unknown pose mod: " + RealHandcuffs:Log.FormIdAsString(poseMod), Library.Settings)
+    EndIf
+    If (newPoseMod != None && SetPoseMod(newPoseMod))
+        If (target != None)
+            ActorToken token = Library.TryGetActorToken(target)
+            If (token != None)
+                token.RefreshEffectsAndAnimations(false, None)
+            EndIf
+        EndIf
+        StartTimer(0.1, UnequipAfterPoseModChange)
+    EndIf
+EndFunction
+
+;
 ; Override: Set internal state after the restraint has been unequipped and unapplied.
 ;
 Function SetStateAfterUnequip(Actor target, Bool interactive)

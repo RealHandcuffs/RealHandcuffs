@@ -23,6 +23,7 @@ Group Plugins
     String Property DLCworkshop01              = "DLCworkshop01.esm" AutoReadOnly
     String Property DLCworkshop02              = "DLCworkshop02.esm" AutoReadOnly
     String Property DLCworkshop03              = "DLCworkshop03.esm" AutoReadOnly
+    String Property TortureDevices             = "TortureDevices.esm" AutoReadOnly
     String Property DeviousDevices             = "Devious Devices.esm" AutoReadOnly
     String Property JustBusiness               = "Just Business.esp" AutoReadOnly
     String Property KnockoutFramework          = "Knockout Framework.esm" AutoReadOnly
@@ -42,6 +43,7 @@ Group AvailablePlugins
     Bool Property DLCworkshop01Available Auto
     Bool Property DLCworkshop02Available Auto
     Bool Property DLCworkshop03Available Auto
+    Bool Property TortureDevicesAvailable Auto
     Bool Property DeviousDevicesAvailable Auto
     Bool Property JustBusinessAvailable Auto
     Bool Property KnockoutFrameworkAvailable Auto
@@ -192,6 +194,7 @@ Function RefreshOnGameLoad()
     DLCworkshop01Available = AddToBoundHandsGenericFurnitureList(0x000C03, DLCworkshop01) ; Decontamination Arch
     DLCworkshop02Available = GetDLCworkshop02Forms()
     DLCworkshop03Available = AddToBoundHandsGenericFurnitureList(0x0042B7, DLCworkshop03) ; Vault 88 Radio Beacon
+    TortureDevicesAvailable = Game.IsPluginInstalled(TortureDevices)
     DeviousDevicesAvailable = GetDeviousDevicesForms()
     JustBusinessAvailable = GetJustBusinessForms()
     KnockoutFrameworkAvailable = GetKnockoutFrameworkForms()
@@ -215,6 +218,9 @@ Function RefreshOnGameLoad()
         EndIf
         If (DLCworkshop03Available)
             list = AddToList(list, DLCworkshop03)
+        EndIf
+        If (TortureDevicesAvailable)
+            list = AddToList(list, TortureDevices)
         EndIf
         If (DeviousDevicesAvailable)
             list = AddToList(list, DeviousDevices)
