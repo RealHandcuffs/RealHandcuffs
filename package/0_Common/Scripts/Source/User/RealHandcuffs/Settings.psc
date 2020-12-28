@@ -30,6 +30,11 @@ Group Derived
             Return !Disabled && IsLiteEdition.GetValueInt() == 0
         EndFunction
     EndProperty
+    Bool Property IntegrateHandcuffsInVanillaScenes
+        Bool Function Get()
+            Return !Disabled && AddHandcuffsToVanillaScenes && IsLiteEdition.GetValueInt() == 0
+        EndFunction
+    EndProperty
     Bool Property SettingsUnlocked Auto
     Bool Property SettingsLocked Auto ; both SettingsUnlocked and SettingsLocked must be auto properties for MCM to work
 EndGroup
@@ -62,6 +67,13 @@ EndGroup
 Group ShockCollars
     Int Property ShockLethality Auto                    ; 0: potentially lethal, 1: only for non-essential actors, 2: always non-lethal
     Int Property PipboyTerminalMode Auto                ; 0: auto-select, 1: open pip-boy directly, 2: use holodisk manually
+EndGroup
+
+;
+; Group for settings that control integration with vanilla or other mods.
+;
+Group Integration
+    Bool Property AddHandcuffsToVanillaScenes Auto
     Bool Property AddCollarsToJBSlaves Auto
     Float Property ShockCollarJBSubmissionWeight Auto   ; 0.0 to 3.0
     Int Property CastJBMarkSpellOnTaserVictims Auto     ; 0: yes, 1: only when causing exhaustion, 2: no
@@ -185,7 +197,7 @@ EndFunction
 ; Apply new shock collar settings. Returns true if any settings have been modified.
 ; This will not fire OnSettingsChanged, the caller has to call FireSettingsChangedEvent if true was returned!
 ; 
-Bool Function ApplyShockCollarSettings(Int newShockLethality, Int newPipboyTerminalMode, Bool newAddCollarsToJBSlaves, Float newShockCollarJBSubmissionWeight, Int newCastJBMarkSpellOnTaserVictims, Int newJBEnslaveByEquippingCollar)
+Bool Function ApplyShockCollarSettings(Int newShockLethality, Int newPipboyTerminalMode)
     Bool changed = false
     If (SettingsUnlocked && ShockLethality != newShockLethality)
         ShockLethality = newShockLethality
@@ -195,19 +207,33 @@ Bool Function ApplyShockCollarSettings(Int newShockLethality, Int newPipboyTermi
         PipboyTerminalMode = newPipboyTerminalMode
         changed = true
     EndIf
-    If (SettingsUnlocked && AddCollarsToJBSlaves != newAddCollarsToJBSlaves)
+    Return changed
+EndFunction
+
+;
+; Apply new integration settings. Returns true if any settings have been modified.
+; This will not fire OnSettingsChanged, the caller has to call FireSettingsChangedEvent if true was returned!
+; 
+Bool Function ApplyIntegrationSettings(Bool newAddHandcuffsToVanillaScenes, Bool newAddCollarsToJBSlaves, Float newShockCollarJBSubmissionWeight, Int newCastJBMarkSpellOnTaserVictims, Int newJBEnslaveByEquippingCollar)
+    ; do not test for SettingsUnlocked, these settings can be changed at any time
+    Bool changed = false
+    If (AddHandcuffsToVanillaScenes != newAddHandcuffsToVanillaScenes)
+        AddHandcuffsToVanillaScenes = newAddHandcuffsToVanillaScenes
+        changed = true
+    EndIf
+    If (AddCollarsToJBSlaves != newAddCollarsToJBSlaves)
         AddCollarsToJBSlaves = newAddCollarsToJBSlaves
         changed = true
     EndIf
-    If (SettingsUnlocked && ShockCollarJBSubmissionWeight != newShockCollarJBSubmissionWeight)
+    If (ShockCollarJBSubmissionWeight != newShockCollarJBSubmissionWeight)
         ShockCollarJBSubmissionWeight = newShockCollarJBSubmissionWeight
         changed = true
     EndIf
-    If (SettingsUnlocked && CastJBMarkSpellOnTaserVictims != newCastJBMarkSpellOnTaserVictims)
+    If (CastJBMarkSpellOnTaserVictims != newCastJBMarkSpellOnTaserVictims)
         CastJBMarkSpellOnTaserVictims = newCastJBMarkSpellOnTaserVictims
         changed = true
     EndIf
-    If (SettingsUnlocked && JBEnslaveByEquippingCollar != newJBEnslaveByEquippingCollar)
+    If (JBEnslaveByEquippingCollar != newJBEnslaveByEquippingCollar)
         JBEnslaveByEquippingCollar = newJBEnslaveByEquippingCollar
         changed = true
     EndIf
@@ -316,15 +342,31 @@ EndFunction
 Bool Function RestoreDefaultShockCollarSettings()
     Int defShockLethality = 0
     Int defPipboyTerminalMode = 0
-    Bool defAddCollarsToJBSlaves = true
-    Float defShockCollarJBSubmissionWeight = 1.0
-    Int defCastJBMarkSpellOnTaserVictims = 1
-    Int defJBEnslaveByEquippingCollar = 1
-    Bool changed = ApplyShockCollarSettings(defShockLethality, defPipboyTerminalMode, defAddCollarsToJBSlaves, defShockCollarJBSubmissionWeight, defCastJBMarkSpellOnTaserVictims, defJBEnslaveByEquippingCollar)
+    Bool changed = ApplyShockCollarSettings(defShockLethality, defPipboyTerminalMode)
     If (changed)
         RealHandcuffs:Log.Info("Default shock collar settings restored.", Self)
     EndIf
     If (UseMCMSettings && SaveMcmShockCollarSettings())
+        MCM.RefreshMenu()
+    EndIf
+    Return changed
+EndFunction
+
+;
+; Set all integration1 settings back to default. Returns true if any settings have been modified.
+; This will not fire OnSettingsChanged event, the caller has to call FireSettingsChangedEvent if true was returned!
+;
+Bool Function RestoreDefaultIntegrationSettings()
+    Bool defAddHandcuffsToVanillaScenes = true
+    Bool defAddCollarsToJBSlaves = true
+    Float defShockCollarJBSubmissionWeight = 1.0
+    Int defCastJBMarkSpellOnTaserVictims = 1
+    Int defJBEnslaveByEquippingCollar = 1
+    Bool changed = ApplyIntegrationSettings(defAddHandcuffsToVanillaScenes, defAddCollarsToJBSlaves, defShockCollarJBSubmissionWeight, defCastJBMarkSpellOnTaserVictims, defJBEnslaveByEquippingCollar)
+    If (changed)
+        RealHandcuffs:Log.Info("Default integration settings restored.", Self)
+    EndIf
+    If (UseMCMSettings && SaveMcmIntegrationSettings())
         MCM.RefreshMenu()
     EndIf
     Return changed
@@ -406,12 +448,25 @@ EndFunction
 Bool Function LoadMcmShockCollarSettings()
     Int mcmShockLethality = MCM.GetModSettingInt("RealHandcuffs", "iShockLethality:ShockCollars")
     Int mcmPipboyTerminalMode = MCM.GetModSettingInt("RealHandcuffs", "iPipboyTerminalMode:ShockCollars")
+    If (ApplyShockCollarSettings(mcmShockLethality, mcmPipboyTerminalMode))
+        RealHandcuffs:Log.Info("Shock collar settings changed from MCM.", Self)
+        Return true
+    EndIf
+    Return false
+EndFunction
+
+;
+; Load all integration settings from MCM. Returns true if any settings have been modified.
+; This will not fire OnSettingsChanged event, the caller has to call FireSettingsChangedEvent if true was returned!
+;
+Bool Function LoadMcmIntegrationSettings()
+    Bool mcmAddHandcuffsToVanillaScenes = MCM.GetModSettingBool("RealHandcuffs", "bAddHandcuffsToVanillaScenes:Handcuffs")
     Bool mcmAddCollarsToJBSlaves = MCM.GetModSettingBool("RealHandcuffs", "bAddCollarsToJBSlaves:ShockCollars")
     Float mcmShockCollarJBSubmissionWeight = MCM.GetModSettingFloat("RealHandcuffs", "fShockCollarJBSubmissionWeight:ShockCollars")
     Int mcmCastJBMarkSpellOnTaserVictims = MCM.GetModSettingInt("RealHandcuffs", "iCastJBMarkSpellOnTaserVictims:ShockCollars")
     Int mcmJBEnslaveByEquippingCollar = MCM.GetModSettingInt("RealHandcuffs","iJBEnslaveByEquippingCollar:ShockCollars")
-    If (ApplyShockCollarSettings(mcmShockLethality, mcmPipboyTerminalMode, mcmAddCollarsToJBSlaves, mcmShockCollarJBSubmissionWeight, mcmCastJBMarkSpellOnTaserVictims, mcmJBEnslaveByEquippingCollar))
-        RealHandcuffs:Log.Info("Shock collar settings changed from MCM.", Self)
+    If (ApplyIntegrationSettings(mcmAddHandcuffsToVanillaScenes, mcmAddCollarsToJBSlaves, mcmShockCollarJBSubmissionWeight, mcmCastJBMarkSpellOnTaserVictims, mcmJBEnslaveByEquippingCollar))
+        RealHandcuffs:Log.Info("Integration settings changed from MCM.", Self)
         Return true
     EndIf
     Return false
@@ -509,19 +564,32 @@ Bool Function SaveMcmShockCollarSettings()
         MCM.SetModSettingInt("RealHandcuffs", "iPipboyTerminalMode:ShockCollars", PipboyTerminalMode)
         changed = true
     EndIf
-    If (SettingsUnlocked && MCM.GetModSettingBool("RealHandcuffs", "bAddCollarsToJBSlaves:ShockCollars") != AddCollarsToJBSlaves)
+    Return changed
+EndFunction
+
+;
+; Save all integration settings to MCM. Returns true if any MCM settings have been updated.
+;
+Bool Function SaveMcmIntegrationSettings()
+    ; do not test for SettingsUnlocked, these settings can be changed at any time
+    Bool changed = false
+    If (MCM.GetModSettingBool("RealHandcuffs", "bAddHandcuffsToVanillaScenes:Handcuffs") != AddHandcuffsToVanillaScenes)
+        MCM.SetModSettingBool("RealHandcuffs", "bAddHandcuffsToVanillaScenes:Handcuffs", AddHandcuffsToVanillaScenes)
+        changed = true
+    EndIf
+    If (MCM.GetModSettingBool("RealHandcuffs", "bAddCollarsToJBSlaves:ShockCollars") != AddCollarsToJBSlaves)
         MCM.SetModSettingBool("RealHandcuffs", "bAddCollarsToJBSlaves:ShockCollars", AddCollarsToJBSlaves)
         changed = true
     EndIf
-    If (SettingsUnlocked && MCM.GetModSettingFloat("RealHandcuffs", "fShockCollarJBSubmissionWeight:ShockCollars") != ShockCollarJBSubmissionWeight)
+    If (MCM.GetModSettingFloat("RealHandcuffs", "fShockCollarJBSubmissionWeight:ShockCollars") != ShockCollarJBSubmissionWeight)
         MCM.SetModSettingFloat("RealHandcuffs", "fShockCollarJBSubmissionWeight:ShockCollars", ShockCollarJBSubmissionWeight)
         changed = true
     EndIf
-    If (SettingsUnlocked && MCM.GetModSettingInt("RealHandcuffs", "iCastJBMarkSpellOnTaserVictims:ShockCollars") != CastJBMarkSpellOnTaserVictims)
+    If (MCM.GetModSettingInt("RealHandcuffs", "iCastJBMarkSpellOnTaserVictims:ShockCollars") != CastJBMarkSpellOnTaserVictims)
         MCM.SetModSettingInt("RealHandcuffs", "iCastJBMarkSpellOnTaserVictims:ShockCollars", CastJBMarkSpellOnTaserVictims)
         changed = true
     EndIf
-    If (SettingsUnlocked && MCM.GetModSettingInt("RealHandcuffs", "iJBEnslaveByEquippingCollar:ShockCollars") != JBEnslaveByEquippingCollar)
+    If (MCM.GetModSettingInt("RealHandcuffs", "iJBEnslaveByEquippingCollar:ShockCollars") != JBEnslaveByEquippingCollar)
         MCM.SetModSettingInt("RealHandcuffs", "iJBEnslaveByEquippingCollar:ShockCollars", JBEnslaveByEquippingCollar)
         changed = true
     EndIf
@@ -581,6 +649,9 @@ Bool Function RestoreDefaultSettings()
     If (RestoreDefaultShockCollarSettings())
         settingsChanged = true
     EndIf
+    If (RestoreDefaultIntegrationSettings())
+        settingsChanged = true
+    EndIf
     If (RestoreDefaultHotkeySettings())
         settingsChanged = true
     EndIf
@@ -601,6 +672,9 @@ Bool Function LoadMcmSettings()
         settingsChanged = true
     EndIf
     If (LoadMcmShockCollarSettings())
+        settingsChanged = true
+    EndIf
+    If (LoadMcmIntegrationSettings())
         settingsChanged = true
     EndIf
     If (LoadMcmHotkeySettings())

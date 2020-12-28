@@ -495,5 +495,8 @@ various small improvements
 Version 0.4.11 TODO
 ===================
 TODO
+- add new MCM page for integration settings and move existing JB integration settings there
+- add option in MCM integration settings to disable vanilla scene integration
+- be more careful in vanilla scene integration to prevent crashes (not clear if this actually helps)
 - fix JB quick-enslave of Crime And Punishment surrendered NPCS
 - prevent JB quick-enslave of Crime And Punishment prisoners

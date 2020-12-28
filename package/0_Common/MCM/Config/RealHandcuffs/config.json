@@ -315,6 +315,33 @@
             "sourceType": "ModSettingInt",
             "options": ["Default", "Open Automatically", "Use Holodisk"]
           }
+        }
+      ]
+    },
+    {
+      "pageDisplayName": "Integration Settings",
+      "content": [
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 1,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "IsLiteEdition"
+          }
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 2,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "IsStandardEdition"
+          }
         },
         {
           "type": "hiddenSwitcher",
@@ -328,17 +355,53 @@
           }
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "text": "Click this line to restore integration settings to defaults.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "function": "RestoreDefaultIntegrationSettings",
+            "params": []
+          }
+        },
+        {
           "type": "spacer",
           "numLines": 1
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 1,
+          "text": "Vanilla Integration Settings are not available in Lite Edition.",
+          "type": "text",
+          "html": true
+        },
+        {
+          "groupCondition": 2,
+          "text": "Vanilla Integration",
+          "type": "section"
+        },
+        {
+          "groupCondition": 2,
+          "id": "bAddHandcuffsToVanillaScenes:Handcuffs",
+          "text": "Add Handcuffs to Vanilla Scenes",
+          "help": "Default: ON",
+          "type": "switcher",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "groupCondition": 3,
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": 3,
           "text": "Just Business Integration",
           "type": "section"
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "bAddCollarsToJBSlaves:ShockCollars",
           "text": "Automatically Add Shock Collars to New Slaves",
           "help": "Default: ON",
@@ -348,7 +411,7 @@
           }
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "fShockCollarJBSubmissionWeight:ShockCollars",
           "text": "Shock Collar Submission Effect Weight",
           "help": "Default: 1; 0 for no effect, 2 for double the default effect",
@@ -361,7 +424,7 @@
           }
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "iCastJBMarkSpellOnTaserVictims:ShockCollars",
           "text": "Automatically Cast Mark Spell on Taser Victims",
           "help": "Default: Only On Exhaustion",
@@ -372,7 +435,7 @@
           }
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "iJBEnslaveByEquippingCollar:ShockCollars",
           "text": "Enslave NPCs by Equipping Shock Collar",
           "help": "Default: Ask for Confirmation",
@@ -388,6 +451,10 @@
       "pageDisplayName": "Hotkey Settings",
       "content": [
         {
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
           "text": "Player",
           "type": "section"
         },
@@ -399,6 +466,10 @@
             "valueOptions": {
                 "allowModifierKeys": true
             }
+        },
+        {
+          "type": "spacer",
+          "numLines": 1
         },
         {
           "text": "NPCs",

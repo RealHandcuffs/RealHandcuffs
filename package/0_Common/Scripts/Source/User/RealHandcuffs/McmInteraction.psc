@@ -10,15 +10,24 @@ FormList Property CraftedRestraints Auto Const Mandatory
 ; Group containing strings shown in main page.
 ;
 Group MainPage
-    ; currently installed version string, or messager that installer is working; set by Installer.psc
+    ; currently installed version string, or message that installer is working; set by Installer.psc
     String Property FullVersionAndEdition Auto
+EndGroup
+
+;
+; Group containing additional properties for MCM pages.
+;
+Group McmConditions
+    ; set by OnMenuOpenCloseEvent
+    Bool Property IsStandardEdition Auto
+    Bool Property IsLiteEdition Auto
 EndGroup
 
 ;
 ; Group containing strings shown in Debug Settings page.
 ;
 Group DebugSettingsPage
-    ; set by OnMCMMenuOpen
+    ; set by OnMenuOpenCloseEvent
     String Property PlayerName Auto
     String Property PlayerWornRestraints Auto
     Bool Property ShowTargetedNpc Auto
@@ -52,6 +61,8 @@ EndFunction
 ;
 Event OnMenuOpenCloseEvent(string asMenuName, bool abOpening)
     If (asMenuName == "PauseMenu" && abOpening)
+        IsStandardEdition = Library.Settings.Edition == "Standard"
+        IsLiteEdition = !IsStandardEdition
         Actor player = Game.GetPlayer()
         PlayerName = "Player: " + RealHandcuffs:Log.FormIdAsString(player) + " " + player.GetDisplayName()
         If (Library.IsFemale(player))

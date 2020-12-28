@@ -9,7 +9,7 @@
         <group name="Edition" type="SelectExactlyOne">
           <plugins order="Explicit">
             <plugin name="Standard">
-              <description><![CDATA[<h4>Real Handcuffs Standard Edition</h4><p>Automatically convert all handcuffs in the Commonwealth to wearable handcuffs. This is the recommended option.</p>]]></description>
+              <description><![CDATA[<h4>Real Handcuffs Standard Edition</h4><p>Automatically convert all handcuffs in the Commonwealth to wearable handcuffs and integrate with vanilla scenes. This is the recommended option.</p>]]></description>
               <conditionFlags>
                 <flag name="edition">standard</flag>
                 <flag name="install_llfp">off</flag>
@@ -25,7 +25,7 @@
               </typeDescriptor>
             </plugin>
             <plugin name="Lite">
-              <description><![CDATA[<h4>Real Handcuffs Lite Edition</h4><p>Do not convert handcuffs automatically. You can select how to convert handcuffs on the next page. Choose this if you only need Real Handcuffs as a dependency for something else.</p>]]></description>
+              <description><![CDATA[<h4>Real Handcuffs Lite Edition</h4><p>Do not convert handcuffs automatically, and do not integrate with vanilla scenes. You can select how to convert handcuffs on the next page. Choose this if you only need Real Handcuffs as a dependency for something else.</p>]]></description>
               <conditionFlags>
                 <flag name="edition">lite</flag>
                 <flag name="convert_chemistry">off</flag>
