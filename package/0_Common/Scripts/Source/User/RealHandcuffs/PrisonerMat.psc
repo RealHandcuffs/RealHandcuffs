@@ -158,6 +158,19 @@ Event RealHandcuffs:Library.OnRestraintUnapplied(Library akSender, Var[] akArgs)
 EndEvent
 
 ;
+; Register for events and move the registered NPC when the cell attaches.
+;
+Event OnCellAttach()
+    If (GetRegisteredActor() == None)
+        If (_assignedActor != None)
+            MoveIntoPosition(_assignedActor)
+            Register(_assignedActor)
+        EndIf
+    EndIf
+    Parent.OnCellAttach()
+EndEvent
+
+;
 ; Event called when assigned actor is commanded by player.
 ;
 Event Actor.OnCommandModeGiveCommand(Actor sender, int aeCommandType, ObjectReference akTarget)
@@ -377,7 +390,8 @@ Function AssignActor(WorkshopNPCScript newActor = None)
             If (!DisablePoseInteraction)
                 assignedActor.AddKeyword(Library.Resources.Posable) ; do this even before the actor registers
             EndIf
-            If (!GetParentCell().IsAttached())
+            If (!GetParentCell().IsAttached() || assignedActor.GetParentCell().IsAttached())
+                MoveIntoPosition(assignedActor)
                 Register(assignedActor)
                 FixPositionAndAnimation()
             EndIf

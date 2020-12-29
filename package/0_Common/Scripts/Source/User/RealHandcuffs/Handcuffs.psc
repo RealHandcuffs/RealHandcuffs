@@ -76,7 +76,8 @@ EndFunction
 ; Override: Check whether the MT animation for the arms can be changed.
 ;
 Bool Function MtAnimationForArmsCanBeCycled()
-    Return Library.SoftDependencies.TortureDevicesAvailable || GetMod(Library.Resources.PoseTag) == ModArmsCuffedBehindBackTortureDevices
+    Return False ; for now, later:
+                 ; Library.SoftDependencies.TortureDevicesAvailable || GetMod(Library.Resources.PoseTag) == ModArmsCuffedBehindBackTortureDevices
 EndFunction
 
 ;

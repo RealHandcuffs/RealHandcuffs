@@ -567,30 +567,19 @@ EndFunction
 ; React on the actor unequipping an item.
 ;
 Function HandleItemUnequipped(Form akBaseObject, ObjectReference akReference)
-    ; check if one or multiple restraints were unequipped
-    ; do not depend on akReference, it is usually None
-    ; also do not depend on akBaseObject, we only get called once for UnequipAll, with a 'random' akBaseObject
-    RealHandcuffs:RestraintBase[] unequippedRestraints = None
+    ; akReference is often None
     Int index = 0
     While (index < _restraints.Length)
         RealHandcuffs:RestraintBase restraint = _restraints[index]
-        If (!_target.IsEquipped(restraint.GetBaseObject()))
-            If (unequippedRestraints == None)
-                unequippedRestraints = new RealHandcuffs:RestraintBase[1]
-                unequippedRestraints[0] = restraint
-            Else
-                unequippedRestraints.Add(restraint)
+        If (akReference != None)
+            If (restraint == akReference)
+                restraint.HandleUnequipped(_target) ; forward event to restraint
+                Return
             EndIf
+        ElseIf (restraint.GetBaseObject() == akBaseObject)
+            restraint.HandleUnequipped(_target) ; forward event to restraint
+            Return
         EndIf
         index += 1
     EndWhile
-    ; only forward to the restraint's HandleUnequipped function after collecting all unequipped restraints
-    ; the reason is that HandleUnequipped may cause some further unequip events; collecting first is more "stable"
-    If (unequippedRestraints != None)
-        index = 0
-        While (index < unequippedRestraints.Length)
-            unequippedRestraints[index].HandleUnequipped(_target)
-            index += 1
-        EndWhile
-    EndIf
 EndFunction
