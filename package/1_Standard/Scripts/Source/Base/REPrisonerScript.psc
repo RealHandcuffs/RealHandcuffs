@@ -47,8 +47,10 @@ Event OnLoad()
 	if bound
 		GetActorReference().ChangeAnimFlavor(AnimFlavorHandsBound)
 		; begin RealHandcuffs changes
-		SetResetNoPackage(false)
-		CreateAndEquipHandcuffs()
+		If (IntegrateHandcuffsInVanillaScenes())
+			SetResetNoPackage(false)
+			CreateAndEquipHandcuffs()
+		EndIf
 		; end RealHandcuffs changes
 	EndIf
 	RegisterForHitEvent(self, Game.GetPlayer())
@@ -73,10 +75,10 @@ EndEvent
 Event OnActivate(ObjectReference akActionRef)
 
 	if GetActorReference().IsDead() || GetActorReference().IsinCombat()
- 		debug.trace(self + "OnActivate() IsDead() or IsInCombat() so not showing message box")	
+		debug.trace(self + "OnActivate() IsDead() or IsInCombat() so not showing message box")	
 	
 	Elseif Bound == true	
- 		debug.trace(self + "OnActivate() will call show message box")	
+		debug.trace(self + "OnActivate() will call show message box")	
 		Actor ActorRef = GetActorReference()
 
 		int result = REPrisonerMessageBox.show()
@@ -114,7 +116,7 @@ Event OnHit(ObjectReference akTarget, ObjectReference akAggressor, Form akSource
 		Return ; unable to fight back
 	EndIf
 	; end RealHandcuffs changes
-  	if AkAggressor == game.getPlayer()
+	if AkAggressor == game.getPlayer()
 		Game.GetPlayer().AddToFaction(REPrisonerFreedCombatPrisonerFaction)
 		AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction)
 	endif
@@ -123,7 +125,7 @@ endEvent
 
 
 Function FreePrisoner(Actor ActorRef, bool playerIsLiberator= true, bool OpenInventory = False)
- 	debug.trace(self + "FreePrisoner(" + ActorRef + "," + playerIsLiberator + ", " + OpenInventory +")")	
+	debug.trace(self + "FreePrisoner(" + ActorRef + "," + playerIsLiberator + ", " + OpenInventory +")")	
 	; begin RealHandcuffs changes
 	SetResetNoPackage(true)
 	If (IsWearingHandcuffs())
@@ -226,6 +228,12 @@ function AddRemoveCaptorFaction(Faction theFaction, bool bAddFaction = true)
 EndFunction
 
 ; functions added by RealHandcuffs
+
+Bool Function IntegrateHandcuffsInVanillaScenes()
+    Quest rhQuest = Game.GetFormFromFile(0x000F99, "RealHandcuffs.esp") as Quest
+    ScriptObject settings = rhQuest.CastAs("RealHandcuffs:Settings")
+    Return settings != None && (settings.GetPropertyValue("IntegrateHandcuffsInVanillaScenes") as Bool)
+EndFunction
 
 ScriptObject Function GetRealHandcuffsApi() Global
     Quest rhQuest = Game.GetFormFromFile(0x000F99, "RealHandcuffs.esp") as Quest

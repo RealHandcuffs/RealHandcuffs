@@ -160,22 +160,6 @@ Int Function GetPriority()
 EndFunction
 
 ;
-; Override: Get the item slots.
-;
-Int[] Function GetSlots()
-    If (Library.SoftDependencies.DDCompatibilityActive && Library.SoftDependencies.DDCompatibilityUseDDSlots)
-        Int[] slots = new Int[2]
-        slots[0] = 37
-        slots[1] = 38
-        Return slots
-    Else
-        Int[] slots = new Int[1]
-        slots[0] = 54
-        Return slots
-    EndIf
-EndFunction
-
-;
 ; Override: Get the impact caused by waring the restraint.
 ;
 String Function GetImpact()

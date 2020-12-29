@@ -75,6 +75,7 @@ Function Initialize(Actor myTarget)
     If (Library.SoftDependencies.AdvancedAnimationFrameworkAvailable && myTarget.GetActorBase() == Library.SoftDependencies.AAF_Doppelganger)
         myTarget.AddKeyword(NoPackage) ; permanently add the NoPackage keyword to AAF doppelganger
     EndIf
+    StartTimer(15, DestroyNpcToken) ; sometimes tokens are created just to observe events on a NPC, they may end up not necessary
 EndFunction
 
 ;
@@ -88,7 +89,6 @@ Function Uninitialize()
     CancelTimer(UpdateWorkshopSandboxLocation) ; may do nothing but that is fine
     If (_preventUnequipAllBug != None)
         CancelTimer(ReequipItemsAffectedByUnequipAllBug)
-        UnregisterForRemoteEvent(Target, "OnItemEquipped")
         _preventUnequipAllBug = None
     EndIf
     If (Target != None)
@@ -153,7 +153,6 @@ Function RefreshOnGameLoad(Bool upgrade)
     If (Target != None) ; use Target, not npcTarget, in case RefreshOnGameLoad has made chances
         If (_preventUnequipAllBug != None) ; should never be true unless we have some bugs
             CancelTimer(ReequipItemsAffectedByUnequipAllBug)
-            UnregisterForRemoteEvent(Target, "OnItemEquipped")
             _preventUnequipAllBug = None
         EndIf
         Float realTime = Utility.GetCurrentRealTime()
@@ -171,10 +170,15 @@ Function RefreshOnGameLoad(Bool upgrade)
             If (waitMarker != None && waitMarker.IsEnabled() && waitMarker.GetRegisteredActor() == None)
                 ; try to restore the link to the wait marker
                 RealHandcuffs:WaitMarkerBase newWaitMarker = Target.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase
-                If (newWaitMarker == None)
-                    waitMarker.Register(Target)
-                ElseIf (newWaitMarker.GetRegisteredActor() == Target)
+                If (newWaitMarker != None && newWaitMarker.GetRegisteredActor() == Target)
                     newWaitMarker.Unregister(Target)
+                    newWaitMarker = None
+                EndIf
+                If (newWaitMarker == None)
+                    WorkshopObjectScript workshopObject = (waitMarker as ObjectReference) as WorkshopObjectScript
+                    If (workshopObject != None && workshopObject.workshopID >= 0 && workshopObject.GetActorRefOwner() == Target)
+                        AssignToWorkshop(workshopObject.workshopID, workshopObject) ; also refresh assignment in case it is broken
+                    EndIf
                     waitMarker.Register(Target)
                 EndIf
             EndIf
@@ -463,7 +467,6 @@ Function PreventUnequipAllBug()
     If (_preventUnequipAllBug == None)
         Form[] preventUnequipAllBug = new Form[0]
         _preventUnequipAllBug = preventUnequipAllBug
-        RegisterForRemoteEvent(Target, "OnItemEquipped")
         Form skin = LL_FourPlay.GetActorBaseSkinForm(Target)
         Int index = 0
         While (index < 32) 
@@ -592,36 +595,27 @@ Event ObjectReference.OnWorkshopNPCTransfer(ObjectReference sender, Location akN
     WorkshopNpcScript workshopNpc = Target as WorkshopNpcScript
     Bool assignedToFurniture = false
     If (workshopNpc != None && akNewWorkshop != None)
-        Int workshopId = workshopNpc.GetWorkshopID()
-        Int waitCount = 0
-        While (workshopId < 0 && waitCount < 30)
-            Utility.Wait(0.1) ; usually we are called before workshopId is set by WorkshopParentScript
-            workshopId = workshopNpc.GetWorkshopID()
-            waitCount += 1
-        EndWhile
-        If (workshopId >= 0)
-            WorkshopScript workshop = WorkshopParent.GetWorkshop(workshopId)
-            If (workshop != None && workshopId == workshop.GetWorkshopID())
-                If (Library.Settings.InfoLoggingEnabled)
-                    RealHandcuffs:Log.Info("Transferred " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " to new workshop.", Library.Settings)
-                EndIf
-                CancelTimer(UpdateWorkshopSandboxLocation) ; may do nothing but that is fine
-                RealHandcuffs:WaitMarkerBase waitMarker = Target.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase
-                If (waitMarker != None)
-                    WorkshopObjectScript workshopObject = (waitMarker as ObjectReference) as WorkshopObjectScript ; both scripts are attached to the same object
-                    If (workshopObject != None && workshopObject.workshopId == workshopId)
-                        ; current wait marker is workshopObject in the new workshop, assign to it
-                        assignedToFurniture = true
-                        If (workshopObject.GetActorRefOwner() != workshopNpc)
-                            WorkshopParent.AssignActorToObjectPUBLIC(workshopNpc, workshopObject, true)
-                        EndIf
-                    Else
-                        ; current wait marker is not workshop object or not in the correct workshop, unregister
-                        waitMarker.Unregister(Target)
-                    EndIf
-                EndIf
-                StartTimer(2, UpdateWorkshopSandboxLocation)
+        WorkshopScript workshop = WorkshopParent.GetWorkshopFromLocation(akNewWorkshop)
+        If (workshop != None)
+            If (Library.Settings.InfoLoggingEnabled)
+                RealHandcuffs:Log.Info("Transferred " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " to new workshop at " + akNewWorkshop.GetName() + ".", Library.Settings)
             EndIf
+            CancelTimer(UpdateWorkshopSandboxLocation) ; may do nothing but that is fine
+            RealHandcuffs:WaitMarkerBase waitMarker = Target.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase
+            If (waitMarker != None)
+                WorkshopObjectScript workshopObject = (waitMarker as ObjectReference) as WorkshopObjectScript ; both scripts are attached to the same object
+                If (workshopObject != None && workshopObject.workshopId == workshop.GetWorkshopID())
+                    ; current wait marker is workshopObject in the new workshop, assign to it
+                    assignedToFurniture = true
+                    If (workshopObject.GetActorRefOwner() != workshopNpc)
+                        WorkshopParent.AssignActorToObjectPUBLIC(workshopNpc, workshopObject, true)
+                    EndIf
+                Else
+                    ; current wait marker is not workshop object or not in the correct workshop, unregister
+                    waitMarker.Unregister(Target)
+                EndIf
+            EndIf
+            StartTimer(2, UpdateWorkshopSandboxLocation)
         EndIf
     EndIf
     If (!assignedToFurniture)
@@ -1091,6 +1085,7 @@ Event Actor.OnItemEquipped(Actor sender, Form akBaseObject, ObjectReference akRe
             preventUnequipAllBug.Add(akBaseObject)
         EndIf
     EndIf
+    Parent.HandleItemEquipped(akBaseObject, akReference)
 EndEvent
 
 ;
@@ -1197,7 +1192,6 @@ Event OnTimer(Int aiTimerID)
             Target.StopCombat()
         EndIf
     ElseIf (aiTimerID == ReequipItemsAffectedByUnequipAllBug)
-        UnregisterForRemoteEvent(Target, "OnItemEquipped")
         Form[] preventUnequipAllBug = _preventUnequipAllBug
         _preventUnequipAllBug = None
         Target.UnequipAll()
@@ -1205,7 +1199,7 @@ Event OnTimer(Int aiTimerID)
         While (index < preventUnequipAllBug.Length)
             Form item = preventUnequipAllBug[index]
             If (!Target.IsEquipped(item))
-                Target.EquipItem(preventUnequipAllBug[index], item is RealHandcuffs:RestraintBase)
+                Target.EquipItem(preventUnequipAllBug[index], item is RealHandcuffs:RestraintBase, true)
             EndIf
             index += 1
         EndWhile

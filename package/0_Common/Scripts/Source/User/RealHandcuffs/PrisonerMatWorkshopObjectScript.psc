@@ -30,7 +30,10 @@ Function HandleDeletion()
     Parent.HandleDeletion()
 EndFunction
 
+Function AssignNPCCustom(Actor newActor) ; necessary for WorkshopFramework 2.0+
+    PrisonerMat.AssignActor(newActor as WorkshopNPCScript, true)
+EndFunction
+
 Function AssignActorCustom(WorkshopNPCScript newActor)
-    PrisonerMat.AssignActor(newActor)
-    Parent.AssignActorCustom(newActor)
+    PrisonerMat.AssignActor(newActor, true)
 EndFunction

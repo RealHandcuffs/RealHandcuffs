@@ -40,15 +40,6 @@ Bool Function SetShockModuleMod(ObjectMod shockModuleMod)
 EndFunction
 
 ;
-; Override: Get the item slots.
-;
-Int[] Function GetSlots()
-    Int[] slots = new Int[1]
-    slots[0] = 50
-    Return slots
-EndFunction
-
-;
 ; Override: Get the impact caused by waring the restraint.
 ;
 String Function GetImpact()
@@ -1099,7 +1090,7 @@ Event OnTimerGameTime(int aiTimerID)
             If (Library.Settings.InfoLoggingEnabled)
                 RealHandcuffs:Log.Info("Torture mode: hoursToTargetTimestamp=" + hoursToTargetTimestamp + ", skipping ahead by " + intervalsToSkip + " intervals.", Library.Settings)
             EndIf
-            If (Library.SoftDependencies.JBCompatibilityActive && Library.Settings.ShockCollarJBSubmissionWeight > 0.0 && (Library.SoftDependencies.IsSlave(target) || Library.SoftDependencies.IsEscapedSlave(target)))
+            If ((Library.SoftDependencies.IsJBSlave(target) || Library.SoftDependencies.IsEscapedJBSlave(target)) && Library.Settings.ShockCollarJBSubmissionWeight > 0.0)
                 Float shockDamage = GetTemporaryShockDamage()
                 Float submissionValue = RealHandcuffs:TemporaryShockDamageDecayEffect.CalculateShockHealthPercent(shockDamage) * Library.Settings.ShockCollarJBSubmissionWeight * 0.5
                 submissionValue *= intervalsToSkip
@@ -1118,7 +1109,7 @@ Event OnTimerGameTime(int aiTimerID)
             ; we are within five (game) minutes of target timestamp, trigger the collar
             If (target.GetParentCell().IsAttached())
                 Trigger(target, true)
-            ElseIf (Library.SoftDependencies.JBCompatibilityActive && Library.Settings.ShockCollarJBSubmissionWeight > 0.0 && (Library.SoftDependencies.IsSlave(target) || Library.SoftDependencies.IsEscapedSlave(target)))
+            ElseIf ((Library.SoftDependencies.IsJBSlave(target) || Library.SoftDependencies.IsEscapedJBSlave(target)) && Library.Settings.ShockCollarJBSubmissionWeight > 0.0)
                 Float shockDamage = GetTemporaryShockDamage()
                 Float submissionValue = RealHandcuffs:TemporaryShockDamageDecayEffect.CalculateShockHealthPercent(shockDamage) * Library.Settings.ShockCollarJBSubmissionWeight * 0.5
                 If (Library.SoftDependencies.IncrementJBSubmission(target, submissionValue))

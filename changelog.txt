@@ -491,3 +491,14 @@ various small improvements
 - JB Integration: allow enslaving NPCs by equipping shock collars on them (requires confirmation by default, setting in shock collar MCM page)
 - fix a race condition preventing correct transfer of multiple items (e.g. handcuffs and collar) to clones
 - small ThirdPartApi fix and improvement
+
+Version 0.4.11
+==============
+more incremental improvements
+- add new MCM page for integration settings and move existing JB integration settings there
+- add option in MCM integration settings to disable vanilla scene integration
+- improve logic of prisoner mats, especially with Workshop Framework 2.x
+- fix JB quick-enslave of Crime And Punishment surrendered NPCS
+- prevent JB quick-enslave of Crime And Punishment prisoners
+- try to detect restraints with missing script instance and unequip them after equipping
+- various other small fixes and improvements

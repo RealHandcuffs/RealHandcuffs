@@ -158,6 +158,7 @@ EndFunction
 
 ;
 ; Get the ActorToken for an actor, will create one if the actor does not have a token.
+; This can still return None, e.g. if the actor is dead or an armor rack.
 ;
 RealHandcuffs:ActorToken Function GetOrCreateActorToken(Actor target)
     If (target == None || target.IsDead() || SoftDependencies.IsArmorRack(target))

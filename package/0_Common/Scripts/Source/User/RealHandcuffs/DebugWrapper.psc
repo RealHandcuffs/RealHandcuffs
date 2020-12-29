@@ -10,3 +10,7 @@ EndFunction
 Function Trace(string asTextToPrint, int aiSeverity = 0) global
     Debug.Trace(asTextToPrint, aiSeverity)
 EndFunction
+
+Function TraceStack(string asTextToPrint, int aiSeverity = 0) global
+    Debug.TraceStack(asTextToPrint, aiSeverity)
+EndFunction

@@ -66,19 +66,19 @@ Event OnLoad()
 		;DL added this for short term use
 		GetActorReference().SetRestrained()
 		; begin RealHandcuffs changes
-        Actor prisoner = GetActorReference()
-		If (_prisonerFurniture != None)
-RealHandcuffs:Log.Error("snapping", none)
-			_prisonerFurniture.WaitFor3DLoad()
-			prisoner.SnapIntoInteraction(_prisonerFurniture)
+		If (IntegrateHandcuffsInVanillaScenes())
+			Actor prisoner = GetActorReference()
+			If (_prisonerFurniture != None && _prisonerFurniture.IsBoundGameObjectAvailable() && !_prisonerFurniture.IsDeleted() && !_prisonerFurniture.IsDisabled() && !_prisonerFurniture.IsDestroyed() && _prisonerFurniture.WaitFor3DLoad() && prisoner.WaitFor3DLoad())
+				prisoner.SnapIntoInteraction(_prisonerFurniture)
+			EndIf
 			_prisonerFurniture = None
-		EndIf
-		SetResetNoPackage(false)
-		CreateAndEquipHandcuffs()
-		ObjectReference currentFurniture = prisoner.GetFurnitureReference()
-		If (IsPrisonerFurniture(currentFurniture))
-			currentFurniture.WaitFor3DLoad()
-			StartPrisonerPose(currentFurniture, false)
+			SetResetNoPackage(false)
+			CreateAndEquipHandcuffs()
+			ObjectReference currentFurniture = prisoner.GetFurnitureReference()
+			If (IsPrisonerFurniture(currentFurniture))
+				currentFurniture.WaitFor3DLoad()
+				StartPrisonerPose(currentFurniture, false)
+			EndIf
 		EndIf
 		; end RealHandcuffs changes
 	EndIf
@@ -108,10 +108,10 @@ EndEvent
 Event OnActivate(ObjectReference akActionRef)
 
 	if GetActorReference().IsDead() || GetActorReference().IsinCombat()
- 		debug.trace(self + "OnActivate() IsDead() or IsInCombat() so not showing message box")	
+		debug.trace(self + "OnActivate() IsDead() or IsInCombat() so not showing message box")	
 	
 	Elseif Bound == true	
- 		debug.trace(self + "OnActivate() will call show message box")	
+		debug.trace(self + "OnActivate() will call show message box")	
 		Actor ActorRef = GetActorReference()
 
 		int result = REPrisonerMessageBox.show()
@@ -143,7 +143,7 @@ Event OnActivate(ObjectReference akActionRef)
 EndEvent
 
 Event OnHit(ObjectReference akTarget, ObjectReference akAggressor, Form akSource, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked, string asMaterialName)
-  	if AkAggressor == game.getPlayer()
+	if AkAggressor == game.getPlayer()
 		;Game.GetPlayer().AddToFaction(REPrisonerFreedCombatPrisonerFaction)
 		;AddRemoveCaptorFaction(REPrisonerFreedCombatCaptorFaction)
 	endif
@@ -152,7 +152,7 @@ endEvent
 
 
 Function FreePrisoner(Actor ActorRef, bool playerIsLiberator= true, bool OpenPrisonerInventory = False)
- 	debug.trace(self + "FreePrisoner(" + ActorRef + "," + playerIsLiberator + ", " + OpenPrisonerInventory +")")	
+	debug.trace(self + "FreePrisoner(" + ActorRef + "," + playerIsLiberator + ", " + OpenPrisonerInventory +")")	
 	; begin RealHandcuffs changes
 	SetResetNoPackage(true)
 	If (_prisonerFurniture != None)
@@ -221,6 +221,12 @@ Function ClearFactions()
 EndFunction
 
 ; functions added by RealHandcuffs
+
+Bool Function IntegrateHandcuffsInVanillaScenes()
+    Quest rhQuest = Game.GetFormFromFile(0x000F99, "RealHandcuffs.esp") as Quest
+    ScriptObject settings = rhQuest.CastAs("RealHandcuffs:Settings")
+    Return settings != None && (settings.GetPropertyValue("IntegrateHandcuffsInVanillaScenes") as Bool)
+EndFunction
 
 ScriptObject Function GetRealHandcuffsApi() Global
     Quest rhQuest = Game.GetFormFromFile(0x000F99, "RealHandcuffs.esp") as Quest

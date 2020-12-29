@@ -10,15 +10,24 @@ FormList Property CraftedRestraints Auto Const Mandatory
 ; Group containing strings shown in main page.
 ;
 Group MainPage
-    ; currently installed version string, or messager that installer is working; set by Installer.psc
+    ; currently installed version string, or message that installer is working; set by Installer.psc
     String Property FullVersionAndEdition Auto
+EndGroup
+
+;
+; Group containing additional properties for MCM pages.
+;
+Group McmConditions
+    ; set by OnMenuOpenCloseEvent
+    Bool Property IsStandardEdition Auto
+    Bool Property IsLiteEdition Auto
 EndGroup
 
 ;
 ; Group containing strings shown in Debug Settings page.
 ;
 Group DebugSettingsPage
-    ; set by OnMCMMenuOpen
+    ; set by OnMenuOpenCloseEvent
     String Property PlayerName Auto
     String Property PlayerWornRestraints Auto
     Bool Property ShowTargetedNpc Auto
@@ -26,6 +35,7 @@ Group DebugSettingsPage
     String Property TargetedNpcName Auto
     String Property TargetedNpcWornRestraints Auto
     String Property TargetedNpcCurrentPackage Auto
+    String Property TargetedNpcActorBase Auto
     Bool Property ShowTargetedObject Auto
     String Property TargetedObjectName Auto
     String Property TargetedObjectInfo Auto
@@ -51,6 +61,8 @@ EndFunction
 ;
 Event OnMenuOpenCloseEvent(string asMenuName, bool abOpening)
     If (asMenuName == "PauseMenu" && abOpening)
+        IsStandardEdition = Library.Settings.Edition == "Standard"
+        IsLiteEdition = !IsStandardEdition
         Actor player = Game.GetPlayer()
         PlayerName = "Player: " + RealHandcuffs:Log.FormIdAsString(player) + " " + player.GetDisplayName()
         If (Library.IsFemale(player))
@@ -75,6 +87,7 @@ Event OnMenuOpenCloseEvent(string asMenuName, bool abOpening)
             Else
                 TargetedNpcName += " (male)"
             EndIf
+            TargetedNpcActorBase = BuildActorBase(targetActor)
             TargetedNpcWornRestraints = BuildWornRestraintsList(targetActor)
             TargetedNpcCurrentPackage = BuildCurrentPackage(targetActor)
         EndIf
@@ -105,6 +118,36 @@ Event OnMenuOpenCloseEvent(string asMenuName, bool abOpening)
         MCM.RefreshMenu()
     EndIf
 EndEvent
+
+;
+; Build a string suffix containing the plugin name.
+;
+String Function BuildPluginNameSuffix(Form item)
+    Int formId = item.GetFormID()
+    Int modIndex = formId / 0x01000000
+    If (formId < 0)
+        modIndex = (255 + modIndex)
+    EndIf
+    If (modIndex != 255)
+        Game:PluginInfo[] plugins = Game.GetInstalledPlugins()
+        Int index = 0
+        While (index < plugins.Length)
+            If (plugins[index].Index == modIndex)
+                Return " [" + plugins[index].Name + "]"
+            EndIf
+            index += 1
+        EndWhile
+    EndIf
+    Return ""
+EndFunction
+
+;
+; Build a string showing the actor base of an actor.
+;
+String Function BuildActorBase(Actor target)
+    ActorBase targetActorBase = target.GetActorBase()
+    Return "Actor Base: " + RealHandcuffs:Log.FormIdAsString(targetActorBase) + BuildPluginNameSuffix(targetActorBase)
+EndFunction
 
 ;
 ; Build a string listing the restraints worn by an actor.
@@ -149,7 +192,7 @@ String Function BuildCurrentPackage(Actor target)
     If (currentScene != None)
         packageName += ", Scene: " + RealHandcuffs:Log.FormIdAsString(currentScene) + " " + currentScene.GetName()
     EndIf
-    Return "Package: " + RealHandcuffs:Log.FormIdAsString(currentPackage) + " " + packageName
+    Return "Package: " + RealHandcuffs:Log.FormIdAsString(currentPackage) + BuildPluginNameSuffix(currentPackage) + " " + packageName
 EndFunction
 
 ;

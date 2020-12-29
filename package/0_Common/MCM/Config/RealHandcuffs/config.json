@@ -315,6 +315,33 @@
             "sourceType": "ModSettingInt",
             "options": ["Default", "Open Automatically", "Use Holodisk"]
           }
+        }
+      ]
+    },
+    {
+      "pageDisplayName": "Integration Settings",
+      "content": [
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 1,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "IsLiteEdition"
+          }
+        },
+        {
+          "type": "hiddenSwitcher",
+          "groupControl": 2,
+          "valueOptions": 
+          {
+            "sourceType": "PropertyValueBool",
+            "sourceForm": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:McmInteraction",
+            "propertyName": "IsStandardEdition"
+          }
         },
         {
           "type": "hiddenSwitcher",
@@ -326,19 +353,55 @@
             "scriptName": "RealHandcuffs:SoftDependencies",
             "propertyName": "JBCompatibilityActive"
           }
-        },        
+        },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "text": "Click this line to restore integration settings to defaults.",
+          "type": "button",
+          "action": {
+            "type": "CallFunction",
+            "form": "RealHandcuffs.esp|000F99",
+            "scriptName": "RealHandcuffs:Settings",
+            "function": "RestoreDefaultIntegrationSettings",
+            "params": []
+          }
+        },
+        {
           "type": "spacer",
           "numLines": 1
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 1,
+          "text": "Vanilla Integration Settings are not available in Lite Edition.",
+          "type": "text",
+          "html": true
+        },
+        {
+          "groupCondition": 2,
+          "text": "Vanilla Integration",
+          "type": "section"
+        },
+        {
+          "groupCondition": 2,
+          "id": "bAddHandcuffsToVanillaScenes:Handcuffs",
+          "text": "Add Handcuffs to Vanilla Scenes",
+          "help": "Default: ON",
+          "type": "switcher",
+          "valueOptions": {
+            "sourceType": "ModSettingBool"
+          }
+        },
+        {
+          "groupCondition": 3,
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
+          "groupCondition": 3,
           "text": "Just Business Integration",
           "type": "section"
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "bAddCollarsToJBSlaves:ShockCollars",
           "text": "Automatically Add Shock Collars to New Slaves",
           "help": "Default: ON",
@@ -346,9 +409,9 @@
           "valueOptions": {
             "sourceType": "ModSettingBool"
           }
-	    },
+        },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "fShockCollarJBSubmissionWeight:ShockCollars",
           "text": "Shock Collar Submission Effect Weight",
           "help": "Default: 1; 0 for no effect, 2 for double the default effect",
@@ -359,9 +422,9 @@
             "max": 3.0,
             "step": 0.1
           }
-	    },
+        },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "iCastJBMarkSpellOnTaserVictims:ShockCollars",
           "text": "Automatically Cast Mark Spell on Taser Victims",
           "help": "Default: Only On Exhaustion",
@@ -372,7 +435,7 @@
           }
         },
         {
-          "groupCondition": { "AND": [2, 3] },
+          "groupCondition": 3,
           "id": "iJBEnslaveByEquippingCollar:ShockCollars",
           "text": "Enslave NPCs by Equipping Shock Collar",
           "help": "Default: Ask for Confirmation",
@@ -388,6 +451,10 @@
       "pageDisplayName": "Hotkey Settings",
       "content": [
         {
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
           "text": "Player",
           "type": "section"
         },
@@ -401,6 +468,10 @@
             }
         },
         {
+          "type": "spacer",
+          "numLines": 1
+        },
+        {
           "text": "NPCs",
           "type": "section"
         },
@@ -412,7 +483,7 @@
             "valueOptions": {
                 "allowModifierKeys": true
             }
-        },        
+        },
         {
           "id": "bShowPoseAction:Hotkeys",
           "text": "Show POSE Activation",
@@ -432,7 +503,7 @@
           }
         }
       ]
-    },    
+    },
     {
       "pageDisplayName": "Debug Settings",
       "content": [
@@ -608,8 +679,17 @@
                 "form": "RealHandcuffs.esp|000F99",
                 "scriptName": "RealHandcuffs:McmInteraction",
                 "propertyName": "TargetedNpcName"
-            },      
+            },
           "type": "section"
+        },
+        {
+          "groupCondition": { "AND": [2, 3, 4] },
+            "textFromStringProperty": {
+                "form": "RealHandcuffs.esp|000F99",
+                "scriptName": "RealHandcuffs:McmInteraction",
+                "propertyName": "TargetedNpcActorBase"
+            },
+          "type": "text"
         },
         {
           "groupCondition": { "AND": [2, 3, 4] },
@@ -617,7 +697,7 @@
             "form": "RealHandcuffs.esp|000F99",
             "scriptName": "RealHandcuffs:McmInteraction",
             "propertyName": "TargetedNpcWornRestraints"
-          },      
+          },
           "help": "Click this line and close MCM to free the NPC.",
           "type": "button",
           "action": {
@@ -680,7 +760,7 @@
                 "form": "RealHandcuffs.esp|000F99",
                 "scriptName": "RealHandcuffs:McmInteraction",
                 "propertyName": "TargetedObjectName"
-            },      
+            },
           "type": "section"
         },
         {
@@ -689,7 +769,7 @@
             "form": "RealHandcuffs.esp|000F99",
             "scriptName": "RealHandcuffs:McmInteraction",
             "propertyName": "TargetedObjectBase"
-          },      
+          },
           "type": "text"
         },
         {
@@ -698,7 +778,7 @@
             "form": "RealHandcuffs.esp|000F99",
             "scriptName": "RealHandcuffs:McmInteraction",
             "propertyName": "TargetedObjectMods"
-          },      
+          },
           "type": "text"
         },
         {

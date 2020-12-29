@@ -17,6 +17,7 @@ Message Property NoActionAvailableForActorUnderCrosshair Auto Const Mandatory
 Bool Property ShowPoseActivation Auto Conditional
 Bool Property EnableQuickInventoryInteraction Auto
 Bool Property IsPosable Auto Conditional
+Bool Property CanChangePoseOfArms Auto Conditional
 Bool Property HasQuickInventory Auto Conditional
 
 ;
@@ -46,20 +47,27 @@ Function InteractWithNpc()
         Return
     EndIf
     IsPosable = IsPosable(targetActor)
-    If (!EnableQuickInventoryInteraction)
-        ; all optional interactions are disable, skip selection dialogue
+    CanChangePoseOfArms = CanChangePoseOfArms(targetActor)
+    If (!EnableQuickInventoryInteraction && !CanChangePoseOfArms)
+        ; all optional interactions are disabled or do not apply, skip selection dialogue
         If (IsPosable)
+            RealHandcuffs:Log.Info("Directly opening change pose dialog for " + RealHandcuffs:Log.FormIdAsString(targetActor) + " " + targetActor.GetDisplayName() + ".", Library.Settings)
             ChangePose.ChangePoseInteractive(targetActor)
             Return
         EndIf
     Else
         HasQuickInventory = IsValidQuickInventoryTarget(targetActor)
-        If (IsPosable || HasQuickInventory)
+        If (IsPosable || CanChangePoseOfArms || HasQuickInventory)
             Int selection = NpcInteraction.Show()
             If (selection == 0)
-                ChangePose.ChangePoseInteractive(targetActor)
-            ElseIf (selection == 1)
+                RealHandcuffs:Log.Info("Opening inventory of " + RealHandcuffs:Log.FormIdAsString(targetActor) + " " + targetActor.GetDisplayName() + ".", Library.Settings)
                 targetActor.OpenInventory(1)
+            ElseIf (selection == 1)
+                RealHandcuffs:Log.Info("Opening change pose dialog for " + RealHandcuffs:Log.FormIdAsString(targetActor) + " " + targetActor.GetDisplayName() + ".", Library.Settings)
+                ChangePose.ChangePoseInteractive(targetActor)
+            ElseIf (selection == 2)
+                RealHandcuffs:Log.Info("Changing pose of arms for " + RealHandcuffs:Log.FormIdAsString(targetActor) + " " + targetActor.GetDisplayName() + ".", Library.Settings)
+                ChangePoseOfArms(targetActor)
             EndIf
             Return
         EndIf
@@ -75,6 +83,35 @@ Bool Function IsPosable(Actor akActor)
     Return akActor.HasKeyword(Library.Resources.Posable)
 EndFunction
 
+;
+; Check if the arms of an actor can be posed differently.
+;
+Bool Function CanChangePoseOfArms(Actor akActor)
+    RealHandcuffs:RestraintBase[] restraints = Library.GetWornRestraints(akActor)
+    Int index = restraints.Length - 1 ; start with highest priority restraint
+    While (index >= 0)
+        If (restraints[index].MtAnimationForArmsCanBeCycled())
+            Return true
+        EndIf
+        index -= 1
+    EndWhile
+    Return false
+EndFunction
+
+;
+; Change the pose of the arms of an actor.
+;
+Function ChangePoseOfArms(Actor akActor)
+    RealHandcuffs:RestraintBase[] restraints = Library.GetWornRestraints(akActor)
+    Int index = restraints.Length - 1 ; start with highest priority restraint
+    While (index >= 0)
+        If (restraints[index].MtAnimationForArmsCanBeCycled())
+            restraints[index].CycleMtAnimationForArms(akActor)
+            Return
+        EndIf
+        index -= 1
+    EndWhile
+EndFunction
 
 ;
 ; Check if an actor is a valid target for the quick-inventory action.
@@ -84,8 +121,11 @@ Bool Function IsValidQuickInventoryTarget(Actor akActor)
         If (akActor.IsPlayerTeammate() || akActor.HasKeyword(PlayerTeammateFlagRemoved))
             Return true
         EndIf
-        If (Library.SoftDependencies.IsSlave(akActor))
-             Return !Library.SoftDependencies.IsEscapedSlave(akActor)
+        If (Library.SoftDependencies.IsJBSlave(akActor))
+             Return !Library.SoftDependencies.IsEscapedJBSlave(akActor)
+        EndIf
+        If (Library.SoftDependencies.IsCAPPrisoner(akActor))
+            Return !Library.SoftDependencies.IsEscapedCAPPrisoner(akActor)
         EndIf
         If (akActor.GetValue(WorkshopPlayerOwned) >= 1 && akActor.GetLinkedRef(WorkshopLinkHome) != None && !akActor.IsHostileToActor(Game.GetPlayer()))
             Return true
