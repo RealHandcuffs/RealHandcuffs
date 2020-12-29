@@ -42,15 +42,6 @@ Int Function GetPriority()
 EndFunction
 
 ;
-; Get the item slots. This is used by the framework to detect conflicts between restraints.
-; Unfortunately F4SE does not provide this functionality at the moment, so we have to do it manually.
-;
-Int[] Function GetSlots()
-    RealHandcuffs:Log.Error("Missing GetSlots override in subclass.", Library.Settings)
-    Return new Int[0]
-EndFunction
-
-;
 ; Get the impact caused by waring the restraint. The returned string must be from the Library's Impacts group.
 ; The returned value must be constant and not change while the restraint is applied.
 ; DEVELOPER NOTE: This (const-ness) may need to change in the future, but will require additional support
@@ -508,7 +499,7 @@ Function ForceEquip(Bool unequipConflicting = false, Bool setDefaultParameters =
         ; apply before equipping, this will bypass the interactions
         RealHandcuffs:ActorToken token = Library.GetOrCreateActorToken(target)
         If (token != None && !token.IsApplied(Self))
-            RealHandcuffs:RestraintBase[] conflicts = token.GetConflictingRestraints(Self)
+            RealHandcuffs:RestraintBase[] conflicts = token.GetConflictingRestraints(GetBaseObject().GetSlotMask())
             If (conflicts != None && conflicts.Length > 0)
                 If (!unequipConflicting)
                     Return ; abort, slots are blocked by other restraints
@@ -588,7 +579,7 @@ Event OnEquipped(Actor akActor)
     Bool interactive = false
     If (!Library.Settings.Disabled && (Library.Settings.HardcoreMode || !UI.IsMenuOpen("Console")))
         Bool containerMenuOpen = UI.IsMenuOpen("ContainerMenu")
-        RealHandcuffs:RestraintBase[] conflicts = token.GetConflictingRestraints(Self)
+        RealHandcuffs:RestraintBase[] conflicts = token.GetConflictingRestraints(GetBaseObject().GetSlotMask())
         If (conflicts != None && conflicts.Length > 0)
             ; detected conflicting restraints that were bumped off, put them back on and abort
             Int index = 0
@@ -785,7 +776,7 @@ Function HandleWearerDied(Actor akActor)
 EndFunction
 
 ;
-; Kick the container ui to force a refresh. The menu will not update automatically if items are moved or equipped/unequipped by script.
+; Kick the container ui to force a refresh. The UI will not always update automatically if items are added/removed/equipped/unequipped by script.
 ;
 Function KickContainerUI(ObjectReference cnt)
     cnt.AddItem(Library.Resources.BobbyPin, 1, true)

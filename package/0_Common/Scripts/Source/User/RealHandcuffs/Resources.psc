@@ -125,6 +125,7 @@ Keyword Property Posable Auto Const Mandatory
 ; Special keywords
 ;
 Keyword Property LinkedActorToEquipCraftedItem Auto Const Mandatory
+Keyword Property Restraint Auto Const Mandatory
 
 ;
 ; Idle animation: Struggle with hands bound on back.

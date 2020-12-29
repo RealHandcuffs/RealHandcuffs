@@ -82,6 +82,7 @@ Function Initialize(Actor myTarget)
     _target = myTarget
     _restraints = new RealHandcuffs:RestraintBase[0]
     _target.AddItem(Self, 1, true)
+    RegisterForRemoteEvent(_target, "OnItemEquipped")
     RegisterForRemoteEvent(_target, "OnItemUnequipped")
 EndFunction
 
@@ -91,6 +92,7 @@ EndFunction
 Function Uninitialize()
     If (_target != None)
         SuspendEffectsAndAnimations()
+        UnregisterForRemoteEvent(_target, "OnItemEquipped")
         UnregisterForRemoteEvent(_target, "OnItemUnequipped")
     EndIf
     _target = None
@@ -224,6 +226,8 @@ EndFunction
 ;
 Function RefreshEventRegistrations()
     If (_target != None)
+        UnregisterForRemoteEvent(_target, "OnItemEquipped")
+        RegisterForRemoteEvent(_target, "OnItemEquipped")
         UnregisterForRemoteEvent(_target, "OnItemUnequipped")
         RegisterForRemoteEvent(_target, "OnItemUnequipped")
     EndIf
@@ -244,31 +248,21 @@ Bool Function IsApplied(RealHandcuffs:RestraintBase restraint)
 EndFunction
 
 ;
-; Return all currently applied restraints that have conflicting item slots with the specified restraint.
+; Return all currently applied restraints that have conflicting item slots with the specified slot mask.
 ;
-RealHandcuffs:RestraintBase[] Function GetConflictingRestraints(RealHandcuffs:RestraintBase restraint)
+RealHandcuffs:RestraintBase[] Function GetConflictingRestraints(Int slotMask)
     RealHandcuffs:RestraintBase[] conflicts = None
-    If (_restraints.Length > 0)
-        Int[] slots = restraint.GetSlots()
-        Int index = 0
-        While (index < _restraints.Length)
-            RealHandcuffs:RestraintBase appliedRestraint = _restraints[index]
-            Int[] appliedSlots = appliedRestraint.GetSlots()
-            Int found = -1
-            Int slotIndex = 0
-            While (found < 0 && slotIndex < slots.Length)
-                found = appliedSlots.Find(slots[slotIndex], 0)
-                slotIndex += 1
-            EndWhile
-            If (found >= 0)
-                If (conflicts == None)
-                    conflicts = new RealHandcuffs:RestraintBase[0]
-                EndIf
-                conflicts.Add(appliedRestraint)
+    Int index = 0
+    While (index < _restraints.Length)
+        RealHandcuffs:RestraintBase restraint = _restraints[index]
+        If (Math.LogicalAnd(slotMask, restraint.GetBaseObject().GetSlotMask()) != 0)
+            If (conflicts == None)
+                conflicts = new RealHandcuffs:RestraintBase[0]
             EndIf
-            index += 1
-        EndWhile
-    EndIf
+            conflicts.Add(restraint)
+        EndIf
+        index += 1
+    EndWhile
     return conflicts
 EndFunction
 
@@ -535,6 +529,13 @@ Bool Function HandleRemoteTriggerFired()
 EndFunction
 
 ;
+; Event handler for equipping items. This will just forward to HandleItemEquipped.
+;
+Event Actor.OnItemEquipped(Actor sender, Form akBaseObject, ObjectReference akReference)
+    HandleItemEquipped(akBaseObject, akReference)
+EndEvent
+
+;
 ; Event handler for actor unequipped item. This will just forward to HandleItemUnequipped.
 ;
 Event Actor.OnItemUnequipped(Actor sender, Form akBaseObject, ObjectReference akReference)
@@ -542,6 +543,25 @@ Event Actor.OnItemUnequipped(Actor sender, Form akBaseObject, ObjectReference ak
         HandleItemUnequipped(akBaseObject, akReference)
     EndIf
 EndEvent
+
+;
+; React on the actor equipping an item.
+;
+Function HandleItemEquipped(Form akBaseObject, ObjectReference akReference)
+    If (akReference != None && akBaseObject.HasKeyword(Library.Resources.Restraint)) ; we can only do the sanity check if akReference is set
+        RealHandcuffs:RestraintBase restraint = akReference as RealHandcuffs:RestraintBase
+        If (restraint == None)
+            RealHandcuffs:Log.Error("Detected restraint (" + RealHandcuffs:Log.FormIdAsString(akReference) + " " + akReference.GetDisplayName() + ") with missing script in inventory of " + RealHandcuffs:Log.FormIdAsString(_target) + " " + _target.GetDisplayName() + ".", Library.Settings)
+            akReference.Drop(true) ; will unequip, too
+            _target.AddItem(akReference, 1, true)
+            If (UI.IsMenuOpen("ContainerMenu"))
+                ; copy of RestraintBase.KickContainerUI, we cannot use it here as the script might still be missing
+                _target.AddItem(Library.Resources.BobbyPin, 1, true)
+                _target.RemoveItem(Library.Resources.BobbyPin, 1, true, None)
+            EndIf
+        EndIf
+    EndIf
+EndFunction
 
 ;
 ; React on the actor unequipping an item.

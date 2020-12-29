@@ -562,23 +562,42 @@ Event OnMenuOpenCloseEvent(string asMenuName, bool abOpening)
             RefreshKeyRegistrations()
         EndIf
     ElseIf (asMenuName == "ContainerMenu")
-        If (_handsBoundBehindBackRestraint != None)
-            If (abOpening)
+        If (abOpening)
+            If (_handsBoundBehindBackRestraint == None)
+                If (_searchedContainer == None)
+                    RealHandcuffs:Log.Info("Player opening unknown container.", Library.Settings)
+                Else
+                    RealHandcuffs:Log.Info("Player opening container " + _searchedContainer.GetDisplayName() + " " + RealHandcuffs:Log.FormIdAsString(_searchedContainer) + ".", Library.Settings)
+                EndIf
+            Else
                 If (_searchedContainer == None)
                     RealHandcuffs:Log.Info("Player opening unknown container with bound hands.", Library.Settings)
                 ElseIf (Library.Settings.InfoLoggingEnabled)
                     RealHandcuffs:Log.Info("Player opening container " + _searchedContainer.GetDisplayName() + " " + RealHandcuffs:Log.FormIdAsString(_searchedContainer) + " with bound hands.", Library.Settings)
                 EndIf
-                RegisterForRemoteEvent(Target, "OnItemAdded")
-                RegisterForRemoteEvent(Target, "OnItemRemoved")
-                AddInventoryEventFilter(None)
-            Else
-                RealHandcuffs:Log.Info("Player closing container.", Library.Settings)
-                RemoveAllInventoryEventFilters()
-                UnregisterForRemoteEvent(Target, "OnItemAdded")
-                UnregisterForRemoteEvent(Target, "OnItemRemoved")
-                _searchedContainer = None ; may do nothing
             EndIf
+            RegisterForRemoteEvent(Target, "OnItemAdded")
+            RegisterForRemoteEvent(Target, "OnItemRemoved")
+            If (_handsBoundBehindBackRestraint == None)
+                AddInventoryEventFilter(Library.Resources.Restraint) ; only observe transfer of restraints if not bound
+            Else
+                AddInventoryEventFilter(None) ; observe everything if bound
+            EndIf
+            Actor maybeSearchedActor
+            If (_searchedContainer != None)
+                maybeSearchedActor = _searchedContainer as Actor
+            Else
+                maybeSearchedActor = LL_FourPlay.LastCrossHairActor()
+            EndIf
+            If (maybeSearchedActor != None && maybeSearchedActor.GetItemCount(Library.Resources.Restraint) > 0)
+                Library.GetOrCreateActorToken(maybeSearchedActor) ; the token will observe OnItemEquipped, it is more reliable than OnEquipped
+            EndIf
+        Else
+            RealHandcuffs:Log.Info("Player closing container.", Library.Settings)
+            RemoveAllInventoryEventFilters()
+            UnregisterForRemoteEvent(Target, "OnItemAdded")
+            UnregisterForRemoteEvent(Target, "OnItemRemoved")
+            _searchedContainer = None ; may do nothing
         EndIf
     EndIf
 EndEvent
@@ -692,51 +711,63 @@ Function UnhideRestraints()
 EndFunction
 
 ;
-; Event handler called when items are taken from a container with bound hands.
+; Event handler called when items are taken from a container.
 ;
 Event ObjectReference.OnItemAdded(ObjectReference sender, Form akBaseItem, int aiItemCount, ObjectReference akItemReference, ObjectReference akSourceContainer)
-    If (_searchedContainer == None) ; fallback in case the perks do not take effect
+    If (_searchedContainer == None)
         If (akSourceContainer == None || akSourceContainer.GetBaseObject() == Library.Resources.InvisibleContainer)
             Return
         EndIf
         _searchedContainer = akSourceContainer
         If (Library.Settings.InfoLoggingEnabled)
             RealHandcuffs:Log.Info("Detected container: " + _searchedContainer.GetDisplayName() + " " + RealHandcuffs:Log.FormIdAsString(_searchedContainer), Library.Settings)
-        EndIf       
-    EndIf
-    If (akSourceContainer == _searchedContainer && _handsBoundBehindBackRestraint != None)
-        Actor sourceAsActor = akSourceContainer as Actor
-        If (sourceAsActor != None && !sourceAsActor.IsDead() && !Library.SoftDependencies.IsArmorRack(sourceAsActor) && !Library.GetHandsBoundBehindBack(sourceAsActor))
-            ; allow trade with another actor who is not bound and can therefore help (follower, settler)
-            Return
         EndIf
-        If (Library.TrySetInteractionType(Library.InteractionTypeContainer, akSourceContainer, 0))
-            ObjectReference temporaryContainer = Target.PlaceAtMe(Library.Resources.InvisibleContainer, 1, false, true, true)
-            Target.RemoveItem(akBaseItem, aiItemCount, true, temporaryContainer)
-            Bool shouldBeAllowed = (akBaseItem as Key) != None || temporaryContainer.GetItemCount(VendorItemKey) > 0 || temporaryContainer.GetItemCount(RhKey) > 0 || BoundHandsTakeItemList.HasForm(akBaseItem) || temporaryContainer.GetItemCount(ActivateWithBoundHands) > 0
-            _handsBoundBehindBackRestraint.TakeItemFromContainerPreventedInteraction(akBaseItem, akSourceContainer, temporaryContainer, shouldBeAllowed)
-            Int itemCount = temporaryContainer.GetItemCount(None)
-            If (itemCount > 0)
-                temporaryContainer.RemoveItem(akBaseItem, itemCount, true, akSourceContainer)
-                If (temporaryContainer.GetItemCount(None) > 0) ; not expected, fallback code
-                    temporaryContainer.RemoveAllItems(akSourceContainer, true)
+        Actor sourceActor = akSourceContainer as Actor
+        If (sourceActor != None && sourceActor.GetItemCount(Library.Resources.Restraint) > 0)
+            Library.GetOrCreateActorToken(sourceActor) ; the token will observe OnItemEquipped, it is more reliable than OnEquipped
+        EndIf
+    EndIf
+    If (akSourceContainer == _searchedContainer)
+        If (akBaseItem.HasKeyword(Library.Resources.Restraint))
+            If (akItemReference == None && !Target.IsEquipped(akBaseItem))
+                ObjectReference ref = Target.DropObject(akBaseItem, 1) ; force the game to create a reference, this will improve odds of seeing it in OnItemEquipped
+                Target.AddItem(ref, 1, true)
+            EndIf
+        EndIf
+        If (_handsBoundBehindBackRestraint != None)
+            Actor sourceAsActor = akSourceContainer as Actor
+            If (sourceAsActor != None && !sourceAsActor.IsDead() && !Library.SoftDependencies.IsArmorRack(sourceAsActor) && !Library.GetHandsBoundBehindBack(sourceAsActor))
+                ; allow trade with another actor who is not bound and can therefore help (follower, settler)
+                Return
+            EndIf
+            If (Library.TrySetInteractionType(Library.InteractionTypeContainer, akSourceContainer, 0))
+                ObjectReference temporaryContainer = Target.PlaceAtMe(Library.Resources.InvisibleContainer, 1, false, true, true)
+                Target.RemoveItem(akBaseItem, aiItemCount, true, temporaryContainer)
+                Bool shouldBeAllowed = (akBaseItem as Key) != None || temporaryContainer.GetItemCount(VendorItemKey) > 0 || temporaryContainer.GetItemCount(RhKey) > 0 || BoundHandsTakeItemList.HasForm(akBaseItem) || temporaryContainer.GetItemCount(ActivateWithBoundHands) > 0
+                _handsBoundBehindBackRestraint.TakeItemFromContainerPreventedInteraction(akBaseItem, akSourceContainer, temporaryContainer, shouldBeAllowed)
+                Int itemCount = temporaryContainer.GetItemCount(None)
+                If (itemCount > 0)
+                    temporaryContainer.RemoveItem(akBaseItem, itemCount, true, akSourceContainer)
+                    If (temporaryContainer.GetItemCount(None) > 0) ; not expected, fallback code
+                        temporaryContainer.RemoveAllItems(akSourceContainer, true)
+                    EndIf
+                    akSourceContainer.AddItem(Library.Resources.BobbyPin, 1, true)
+                    akSourceContainer.RemoveItem(Library.Resources.BobbyPin, 1, true, None)
                 EndIf
+                temporaryContainer.Delete()
+                Library.ClearInteractionType()
+            Else
+                ; player was taking whole container content, revert all changes
+                Target.RemoveItem(akBaseItem, aiItemCount, false, akSourceContainer)
                 akSourceContainer.AddItem(Library.Resources.BobbyPin, 1, true)
                 akSourceContainer.RemoveItem(Library.Resources.BobbyPin, 1, true, None)
             EndIf
-            temporaryContainer.Delete()
-            Library.ClearInteractionType()
-        Else
-            ; player was taking whole container content, revert all changes
-            Target.RemoveItem(akBaseItem, aiItemCount, false, akSourceContainer)
-            akSourceContainer.AddItem(Library.Resources.BobbyPin, 1, true)
-            akSourceContainer.RemoveItem(Library.Resources.BobbyPin, 1, true, None)
         EndIf
     EndIf
 EndEvent
 
 ;
-; Event handler called when items are put into a container with bound hands.
+; Event handler called when items are put into a container.
 ;
 Event ObjectReference.OnItemRemoved(ObjectReference sender, Form akBaseItem, int aiItemCount, ObjectReference akItemReference, ObjectReference akDestContainer)
     If (_searchedContainer == None) ; fallback in case the perks do not take effect
@@ -746,39 +777,52 @@ Event ObjectReference.OnItemRemoved(ObjectReference sender, Form akBaseItem, int
         _searchedContainer = akDestContainer
         If (Library.Settings.InfoLoggingEnabled)
             RealHandcuffs:Log.Info("Detected container: " + _searchedContainer.GetDisplayName() + " " + RealHandcuffs:Log.FormIdAsString(_searchedContainer), Library.Settings)
-        EndIf       
-    EndIf
-    If (akDestContainer == _searchedContainer && _handsBoundBehindBackRestraint != None)
-        Actor sourceAsActor = akDestContainer as Actor
-        If (sourceAsActor != None && !sourceAsActor.IsDead() && !Library.SoftDependencies.IsArmorRack(sourceAsActor) && !Library.GetHandsBoundBehindBack(sourceAsActor))
-            ; allow trade with another actor who is not bound and can therefore help (follower, settler)
-            Return
         EndIf
-        If (Library.TrySetInteractionType(Library.InteractionTypeContainer, akDestContainer, 0))
-            ObjectReference temporaryContainer = Target.PlaceAtMe(Library.Resources.InvisibleContainer, 1, false, true, true)
-            akDestContainer.RemoveItem(akBaseItem, aiItemCount, true, temporaryContainer)
-            Bool shouldBeAllowed = (akBaseItem as Key) != None || temporaryContainer.GetItemCount(VendorItemKey) > 0 || temporaryContainer.GetItemCount(RhKey) > 0 || BoundHandsTakeItemList.HasForm(akBaseItem) || temporaryContainer.GetItemCount(ActivateWithBoundHands) > 0
-            _handsBoundBehindBackRestraint.PutItemIntoContainerPreventedInteraction(akBaseItem, akDestContainer, temporaryContainer, shouldBeAllowed)
-            Int itemCount = temporaryContainer.GetItemCount(None)
-            If (itemCount > 0)
-                temporaryContainer.RemoveItem(akBaseItem, itemCount, true, Target)
-                If (temporaryContainer.GetItemCount(None) > 0) ; not expected, fallback code
-                    temporaryContainer.RemoveAllItems(Target, true)
+        Actor destActor = akDestContainer as Actor
+        If (destActor != None && destActor.GetItemCount(Library.Resources.Restraint) > 0)
+            Library.GetOrCreateActorToken(destActor) ; the token will observe OnItemEquipped, it is more reliable than OnEquipped
+        EndIf
+    EndIf
+    If (akDestContainer == _searchedContainer)
+        Actor destActor = akDestContainer as Actor
+        If (destActor != None && akBaseItem.HasKeyword(Library.Resources.Restraint))
+            If (akItemReference == None && !destActor.IsEquipped(akBaseItem))
+                ObjectReference ref = destActor.DropObject(akBaseItem, 1) ; force the game to create a reference, this will improve odds of seeing it in OnItemEquipped
+                destActor.AddItem(ref, 1, true)
+            EndIf
+            Library.GetOrCreateActorToken(destActor) ; the token will observe OnItemEquipped, it is more reliable than OnEquipped
+        EndIf
+        If (_handsBoundBehindBackRestraint != None)
+            Actor sourceAsActor = akDestContainer as Actor
+            If (sourceAsActor != None && !sourceAsActor.IsDead() && !Library.SoftDependencies.IsArmorRack(sourceAsActor) && !Library.GetHandsBoundBehindBack(sourceAsActor))
+                ; allow trade with another actor who is not bound and can therefore help (follower, settler)
+                Return
+            EndIf
+            If (Library.TrySetInteractionType(Library.InteractionTypeContainer, akDestContainer, 0))
+                ObjectReference temporaryContainer = Target.PlaceAtMe(Library.Resources.InvisibleContainer, 1, false, true, true)
+                akDestContainer.RemoveItem(akBaseItem, aiItemCount, true, temporaryContainer)
+                Bool shouldBeAllowed = (akBaseItem as Key) != None || temporaryContainer.GetItemCount(VendorItemKey) > 0 || temporaryContainer.GetItemCount(RhKey) > 0 || BoundHandsTakeItemList.HasForm(akBaseItem) || temporaryContainer.GetItemCount(ActivateWithBoundHands) > 0
+                _handsBoundBehindBackRestraint.PutItemIntoContainerPreventedInteraction(akBaseItem, akDestContainer, temporaryContainer, shouldBeAllowed)
+                Int itemCount = temporaryContainer.GetItemCount(None)
+                If (itemCount > 0)
+                    temporaryContainer.RemoveItem(akBaseItem, itemCount, true, Target)
+                    If (temporaryContainer.GetItemCount(None) > 0) ; not expected, fallback code
+                        temporaryContainer.RemoveAllItems(Target, true)
+                    EndIf
+                    Target.AddItem(Library.Resources.BobbyPin, 1, true)
+                    Target.RemoveItem(Library.Resources.BobbyPin, 1, true, None)
                 EndIf
+                temporaryContainer.Delete()
+                Library.ClearInteractionType()
+            Else
+                ; player was putting all items, revert all changes
+                akDestContainer.RemoveItem(akBaseItem, aiItemCount, false, Target)
                 Target.AddItem(Library.Resources.BobbyPin, 1, true)
                 Target.RemoveItem(Library.Resources.BobbyPin, 1, true, None)
             EndIf
-            temporaryContainer.Delete()
-            Library.ClearInteractionType()
-        Else
-            ; player was putting all items, revert all changes
-            akDestContainer.RemoveItem(akBaseItem, aiItemCount, false, Target)
-            Target.AddItem(Library.Resources.BobbyPin, 1, true)
-            Target.RemoveItem(Library.Resources.BobbyPin, 1, true, None)
         EndIf
     EndIf
 EndEvent
-
 
 ;
 ; Event handler for entering furniture.

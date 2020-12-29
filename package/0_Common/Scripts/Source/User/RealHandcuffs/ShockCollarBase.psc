@@ -40,15 +40,6 @@ Bool Function SetShockModuleMod(ObjectMod shockModuleMod)
 EndFunction
 
 ;
-; Override: Get the item slots.
-;
-Int[] Function GetSlots()
-    Int[] slots = new Int[1]
-    slots[0] = 50
-    Return slots
-EndFunction
-
-;
 ; Override: Get the impact caused by waring the restraint.
 ;
 String Function GetImpact()

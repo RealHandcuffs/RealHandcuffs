@@ -75,6 +75,7 @@ Function Initialize(Actor myTarget)
     If (Library.SoftDependencies.AdvancedAnimationFrameworkAvailable && myTarget.GetActorBase() == Library.SoftDependencies.AAF_Doppelganger)
         myTarget.AddKeyword(NoPackage) ; permanently add the NoPackage keyword to AAF doppelganger
     EndIf
+    StartTimer(15, DestroyNpcToken) ; sometimes tokens are created just to observe events on a NPC, they may end up not necessary
 EndFunction
 
 ;
@@ -88,7 +89,6 @@ Function Uninitialize()
     CancelTimer(UpdateWorkshopSandboxLocation) ; may do nothing but that is fine
     If (_preventUnequipAllBug != None)
         CancelTimer(ReequipItemsAffectedByUnequipAllBug)
-        UnregisterForRemoteEvent(Target, "OnItemEquipped")
         _preventUnequipAllBug = None
     EndIf
     If (Target != None)
@@ -153,7 +153,6 @@ Function RefreshOnGameLoad(Bool upgrade)
     If (Target != None) ; use Target, not npcTarget, in case RefreshOnGameLoad has made chances
         If (_preventUnequipAllBug != None) ; should never be true unless we have some bugs
             CancelTimer(ReequipItemsAffectedByUnequipAllBug)
-            UnregisterForRemoteEvent(Target, "OnItemEquipped")
             _preventUnequipAllBug = None
         EndIf
         Float realTime = Utility.GetCurrentRealTime()
@@ -463,7 +462,6 @@ Function PreventUnequipAllBug()
     If (_preventUnequipAllBug == None)
         Form[] preventUnequipAllBug = new Form[0]
         _preventUnequipAllBug = preventUnequipAllBug
-        RegisterForRemoteEvent(Target, "OnItemEquipped")
         Form skin = LL_FourPlay.GetActorBaseSkinForm(Target)
         Int index = 0
         While (index < 32) 
@@ -1091,6 +1089,7 @@ Event Actor.OnItemEquipped(Actor sender, Form akBaseObject, ObjectReference akRe
             preventUnequipAllBug.Add(akBaseObject)
         EndIf
     EndIf
+    Parent.HandleItemEquipped(akBaseObject, akReference)
 EndEvent
 
 ;
@@ -1197,7 +1196,6 @@ Event OnTimer(Int aiTimerID)
             Target.StopCombat()
         EndIf
     ElseIf (aiTimerID == ReequipItemsAffectedByUnequipAllBug)
-        UnregisterForRemoteEvent(Target, "OnItemEquipped")
         Form[] preventUnequipAllBug = _preventUnequipAllBug
         _preventUnequipAllBug = None
         Target.UnequipAll()
@@ -1205,7 +1203,7 @@ Event OnTimer(Int aiTimerID)
         While (index < preventUnequipAllBug.Length)
             Form item = preventUnequipAllBug[index]
             If (!Target.IsEquipped(item))
-                Target.EquipItem(preventUnequipAllBug[index], item is RealHandcuffs:RestraintBase)
+                Target.EquipItem(preventUnequipAllBug[index], item is RealHandcuffs:RestraintBase, true)
             EndIf
             index += 1
         EndWhile
