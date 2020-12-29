@@ -56,16 +56,7 @@ Event OnActivate(ObjectReference akActionRef)
                 EndIf
                 MoveIntoPosition(target) ; kick NPC out of furniture
                 If (registeredActor == None)
-                    If (Register(target))
-                        WorkshopObjectScript workshopObject = (Self as ObjectReference) as WorkshopObjectScript ; both scripts are attached to the same object
-                        If (Library.Settings.AutoAssignPrisonerMatUsers && workshopObject != None && workshopObject.workshopID >= 0)
-                            RealHandcuffs:NPCToken token = Library.TryGetActorToken(target) as RealHandcuffs:NPCToken
-                            If (token != None) ; not expected but check to be safe
-                                RealHandcuffs:Log.Info("Auto-assigning " + RealHandcuffs:Log.FormIdAsString(target) + " " + target.GetDisplayName() + " to workshop.", Library.Settings)
-                                token.AssignToWorkshop(workshopObject.workshopID, workshopObject)
-                            EndIf
-                        EndIf
-                    EndIf
+                    Register(target)
                 ElseIf (registeredActor != _assignedActor)
                     ; only replace currently registered actor if it is not the assigned actor
                     Unregister(registeredActor)
@@ -92,6 +83,14 @@ Bool Function Register(Actor akActor)
         RealHandcuffs:Log.Info("Registered " + RealHandcuffs:Log.FormIdAsString(akActor) + " " + akActor.GetDisplayName() + " with prisoner mat.", Library.Settings)
     EndIf
     RegisterForCustomEvent(Library, "OnRestraintUnapplied")
+    WorkshopObjectScript workshopObject = (Self as ObjectReference) as WorkshopObjectScript ; both scripts are attached to the same object
+    If (Library.Settings.AutoAssignPrisonerMatUsers && workshopObject != None && workshopObject.workshopID >= 0 && (workshopObject.GetActorRefOwner() != akActor || _assignedActor != akActor))
+        RealHandcuffs:NPCToken token = Library.TryGetActorToken(akActor) as RealHandcuffs:NPCToken
+        If (token != None) ; not expected but check to be safe
+            RealHandcuffs:Log.Info("Auto-assigning " + RealHandcuffs:Log.FormIdAsString(akActor) + " " + akActor.GetDisplayName() + " to workshop.", Library.Settings)
+            token.AssignToWorkshop(workshopObject.workshopID, workshopObject)
+        EndIf
+    EndIf
     Return true
 EndFunction
 
@@ -100,11 +99,11 @@ EndFunction
 ;
 Function Unregister(Actor akActor)
     If (akActor == _assignedActor)
-        AssignActor(None)
+        AssignActor(None, false)
     EndIf
     Bool isRegistered = (akActor == GetRegisteredActor())
     Parent.Unregister(akActor)
-    If (isRegistered )
+    If (isRegistered)
         If (Library.Settings.InfoLoggingEnabled)
             RealHandcuffs:Log.Info("Unregistered " + RealHandcuffs:Log.FormIdAsString(akActor) + " " + akActor.GetDisplayName() + " from prisoner mat.", Library.Settings)
         EndIf
@@ -188,6 +187,7 @@ Event Actor.OnCommandModeGiveCommand(Actor sender, int aeCommandType, ObjectRefe
                 If (Library.Settings.InfoLoggingEnabled)
                     RealHandcuffs:Log.Info("Unassigning " + RealHandcuffs:Log.FormIdAsString(_assignedActor) + " " + _assignedActor.GetDisplayName() + " from prisoner mat after player assigned to different work item.", Library.Settings)
                 EndIf
+                Unregister(_assignedActor)
                 ; Use WS / UFO4P function if it exists, and fail if it does not exist.
                 ; function UnassignActorFromObjectPUBLIC(WorkshopNPCScript theActor, WorkshopObjectScript theObject, bool bSendUnassignEvent = true, bool bTryToAssignResources = true)
                 Var[] kArgs = new Var[4]
@@ -273,7 +273,7 @@ Function HandleCreation()
         _marker = PlaceAtMe(Marker, 1, false, true, true)
         RegisterForMenuOpenCloseEvent("WorkshopMenu")
     EndIf
-    AssignActor(None)
+    AssignActor(None, false)
     If (_marker != None || _decorator != None)
         UpdatePosition()
     EndIf
@@ -333,7 +333,7 @@ Function HandleDeletion()
         _marker = None
         UnregisterForMenuOpenCloseEvent("WorkshopMenu")
     EndIf
-    AssignActor(None)
+    AssignActor(None, false)
     Actor registeredActor = GetRegisteredActor()
     If (registeredActor != None)
         Unregister(registeredActor)
@@ -343,10 +343,20 @@ EndFunction
 ;
 ; Handle assignment of actor.
 ;
-Function AssignActor(WorkshopNPCScript newActor = None)
-    SetDestroyed(true) ; prevent further activations while we are processing this assignment
+Function AssignActor(WorkshopNPCScript newActor, Bool isAutoAssignment)
     WorkshopObjectScript workshopObject = (Self as ObjectReference) as WorkshopObjectScript
     WorkshopNPCScript assignedActor = _assignedActor
+    If (isAutoAssignment && newActor == None && assignedActor != None)
+        ; check if we need to intervene to prevent auto-unassignment
+        Int workshopId = workshopObject.workshopID 
+        If (workshopID >= 0 && assignedActor.GetWorkshopID() == workshopID && !assignedActor.IsPlayerTeammate())
+            ; hardcore revert, bypassing the framework
+            RealHandcuffs:Log.Info("Reverting prisoner mat unassign of " + RealHandcuffs:Log.FormIdAsString(assignedActor) + " " + assignedActor.GetDisplayName() + ".", Library.Settings)
+            SetActorRefOwner(assignedActor, true)
+            CallFunctionNoWait("UnassignFromOtherResources", new Var[0]) ; use NoWait as we are inside a public workshop parent function
+            Return
+        EndIf
+    EndIf
     If (assignedActor != None && assignedActor != newActor)
         _assignedActor = None
         If (assignedActor.GetLinkedRef(Library.Resources.PrisonerMatLink) == Self) ; may no longe be true, e.g. if assigned to another prisoner mat
@@ -373,6 +383,10 @@ Function AssignActor(WorkshopNPCScript newActor = None)
     EndIf
     assignedActor = newActor
     If (assignedActor != None && assignedActor != _assignedActor)
+        RealHandcuffs:WaitMarkerBase oldWaitMarker = assignedActor.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase
+        If (oldWaitMarker != None && oldWaitMarker.GetRegisteredActor() == assignedActor)
+            oldWaitMarker.Unregister(assignedActor)
+        EndIf
         _assignedActor = assignedActor
         assignedActor.SetLinkedRef(Self, Library.Resources.PrisonerMatLink)
         Library.PrisonerMatActors.AddRef(assignedActor)
@@ -400,9 +414,8 @@ Function AssignActor(WorkshopNPCScript newActor = None)
         If (Library.Settings.InfoLoggingEnabled)
             RealHandcuffs:Log.Info(RealHandcuffs:Log.FormIdAsString(assignedActor) + " " + assignedActor.GetDisplayName() + " assigned to prisoner mat.", Library.Settings)
         EndIf
-        CallFunctionNoWait("UnassignFromOtherResources", new Var[0]) ; use NoWait as we are inside a public workshop parent function
     EndIf
-    SetDestroyed(false) ; allow activations again
+    CallFunctionNoWait("UnassignFromOtherResources", new Var[0]) ; use NoWait as we are inside a public workshop parent function
 EndFunction
 
 ;
