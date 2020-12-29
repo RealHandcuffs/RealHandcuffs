@@ -583,8 +583,8 @@ Bool Function AssignToWorkshop(int workshopId, WorkshopObjectScript assignToObje
         WorkshopParent.AddActorToWorkshopPUBLIC(workshopNpc, workshop, true)
         WorkshopParent.AssignActorToObjectPUBLIC(workshopNpc, assignToObject, true)
     EndIf
-    RealHandcuffs:Log.Info("Transferred " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " to new workshop.", Library.Settings)
-    StartTimer(2, UpdateWorkshopSandboxLocation)    
+    RealHandcuffs:Log.Info("Transferred " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " to new workshop at " + workshop.myLocation.GetName() + ".", Library.Settings)
+    StartTimer(2, UpdateWorkshopSandboxLocation)
     Return true
 EndFunction
 

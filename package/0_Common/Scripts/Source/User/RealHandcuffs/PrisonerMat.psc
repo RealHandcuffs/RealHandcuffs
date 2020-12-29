@@ -177,26 +177,31 @@ Event Actor.OnCommandModeGiveCommand(Actor sender, int aeCommandType, ObjectRefe
     If (sender != _assignedActor)
         ; not expected, fallback
         UnregisterForRemoteEvent(sender, "OnCommandModeGiveCommand")
-    ElseIf (workshopObject != None && aeCommandType == 10 && akTarget != Self) ; 10: Workshop Assign
-        ; unassign when player assigns to different workshop item, unless it is a bed
-        Int workshopId = _assignedActor.GetWorkshopID()
-        If (workshopId >= 0)
-            WorkshopScript workshop = workshopObject.WorkshopParent.GetWorkshop(workshopId)
+    ElseIf (workshopObject != None && (aeCommandType == 2 ||(aeCommandType == 10 && akTarget != Self))) ; 2: Follow, 10: Workshop Assign
+        Bool doUnassign = false
+        If (aeCommandType == 2)
+            ; unassign when player commands to follow
+            doUnassign = true
+        Else
+            ; unassing when player assigns to different workshop item
             WorkshopObjectScript newWorkshopItem = akTarget as WorkshopObjectScript
-            If (workshop != None && workshopId == workshop.GetWorkshopID() && newWorkshopItem != None && !newWorkshopItem.IsBed())
-                If (Library.Settings.InfoLoggingEnabled)
-                    RealHandcuffs:Log.Info("Unassigning " + RealHandcuffs:Log.FormIdAsString(_assignedActor) + " " + _assignedActor.GetDisplayName() + " from prisoner mat after player assigned to different work item.", Library.Settings)
-                EndIf
-                Unregister(_assignedActor)
-                ; Use WS / UFO4P function if it exists, and fail if it does not exist.
-                ; function UnassignActorFromObjectPUBLIC(WorkshopNPCScript theActor, WorkshopObjectScript theObject, bool bSendUnassignEvent = true, bool bTryToAssignResources = true)
-                Var[] kArgs = new Var[4]
-                kArgs[0] = _assignedActor
-                kArgs[1] = workshopObject
-                kArgs[2] = true
-                kArgs[3] = false
-                workshopObject.WorkshopParent.CallFunction("UnassignActorFromObjectPUBLIC", kArgs)
+            If (newWorkshopItem != None)
+                doUnassign = true
             EndIf
+        EndIf
+        If (doUnassign)
+            If (Library.Settings.InfoLoggingEnabled)
+                RealHandcuffs:Log.Info("Unassigning " + RealHandcuffs:Log.FormIdAsString(_assignedActor) + " " + _assignedActor.GetDisplayName() + " from prisoner mat after player command.", Library.Settings)
+            EndIf
+            Unregister(_assignedActor)
+            ; Use WS / UFO4P function if it exists, and fail if it does not exist.
+            ; function UnassignActorFromObjectPUBLIC(WorkshopNPCScript theActor, WorkshopObjectScript theObject, bool bSendUnassignEvent = true, bool bTryToAssignResources = true)
+            Var[] kArgs = new Var[4]
+            kArgs[0] = _assignedActor
+            kArgs[1] = workshopObject
+            kArgs[2] = true
+            kArgs[3] = false
+            workshopObject.WorkshopParent.CallFunction("UnassignActorFromObjectPUBLIC", kArgs)
         EndIf
     EndIf
 EndEvent
@@ -404,7 +409,7 @@ Function AssignActor(WorkshopNPCScript newActor, Bool isAutoAssignment)
             If (!DisablePoseInteraction)
                 assignedActor.AddKeyword(Library.Resources.Posable) ; do this even before the actor registers
             EndIf
-            If (!GetParentCell().IsAttached() || assignedActor.GetParentCell().IsAttached())
+            If (!GetParentCell().IsAttached())
                 MoveIntoPosition(assignedActor)
                 Register(assignedActor)
                 FixPositionAndAnimation()

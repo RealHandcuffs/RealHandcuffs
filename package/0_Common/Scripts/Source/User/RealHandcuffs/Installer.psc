@@ -31,6 +31,9 @@ String Property InstalledEdition Auto         ; currently installed edition
 
 Bool Property InstallerRunning Auto ; flag to prevent concurrent running of installer tasks
 
+Int _parallelWorkerCount
+Int Property ParallelWorkers = 8 AutoReadOnly
+
 ;
 ; Called on initial installation of the mod.
 ;
@@ -230,6 +233,13 @@ Function DoMaintenance()
 EndFunction
 
 ;
+; Function used by V1 state for parallel work.
+;
+Function RefreshActorToken(RealHandcuffs:ActorToken token, Bool upgrade)
+    ; not defined in empty state
+EndFunction
+
+;
 ; "Update pending" state, all updates switch to this state before switching to the target state.
 ;
 State UpdatePending
@@ -292,6 +302,7 @@ State V1
         ; maintain npc tokens
         RefCollectionAlias restrained = Library.RestrainedNpcs
         Int index = 0
+        _parallelWorkerCount = 0
         While (index < restrained.GetCount())
             Actor restrainedNpc = restrained.GetAt(index) as Actor
             token = Library.TryGetActorToken(restrainedNpc)
@@ -321,10 +332,19 @@ State V1
                     RealHandcuffs:Log.Info("Removed from restrained NPCs [" + restrained.GetCount() + "]: " + RealHandcuffs:Log.FormIdAsString(restrainedNpc) + " " + restrainedNpc.GetDisplayName() + " (" + reason +  ")", Library.Settings)
                 EndIf
             Else
-                token.RefreshOnGameLoad(true)
-                token.RefreshEventRegistrations()
+                ; refresh multiple actor tokens parallel
+                Var[] kArgs = new Var[2]
+                kArgs[0] = token
+                kArgs[1] = true
+                CallFunctionNoWait("RefreshActorToken", kArgs)
                 index += 1
+                While (_parallelWorkerCount >= ParallelWorkers)
+                    Utility.WaitMenuMode(1.0)
+                EndWhile
             EndIf
+        EndWhile
+        While (_parallelWorkerCount > 0)
+            Utility.WaitMenuMode(0.25)
         EndWhile
         RealHandcuffs:Log.Info("Handled " + index + " restrained NPCs.", Library.Settings)
         ; add perks
@@ -381,6 +401,15 @@ State V1
         RealHandcuffs:Log.Info("Entered state V1.", Library.Settings)
     EndEvent
     
+    Function RefreshActorToken(RealHandcuffs:ActorToken token, Bool upgrade)
+        _parallelWorkerCount += 1
+        token.RefreshOnGameLoad(upgrade)
+        If (upgrade)
+            token.RefreshEventRegistrations()
+        EndIf
+        _parallelWorkerCount -= 1
+    EndFunction
+
     Event Quest.OnStageSet(Quest q, int auiStageID, int auiItemID)
         If (q == MQ102 && auiStageID >= 6)
             UnregisterForRemoteEvent(q, "OnStageSet")
