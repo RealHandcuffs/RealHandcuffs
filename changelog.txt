@@ -502,3 +502,9 @@ more incremental improvements
 - prevent JB quick-enslave of Crime And Punishment prisoners
 - try to detect restraints with missing script instance and unequip them after equipping
 - various other small fixes and improvements
+
+Version 0.4.12 Beta 1
+=====================
+virtibird riding for bound NPCs
+- allow up to three bound NPCs to ride in the cargo compartment of vertibirds when accompanying the player (they will be locked up/released automatically)
+- fix error in handcuffs converter causing some legacy handcuffs (misc item) to disappear instead of being converted to real handcuffs

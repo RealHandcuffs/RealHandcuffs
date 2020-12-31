@@ -128,6 +128,14 @@ Keyword Property LinkedActorToEquipCraftedItem Auto Const Mandatory
 Keyword Property Restraint Auto Const Mandatory
 
 ;
+; Infrastructure used for vertibird riding
+;
+Keyword Property LinkedOwnerSpecial Auto Const Mandatory
+Keyword Property LinkedVertibird Auto Const Mandatory
+Location Property HoldingCell Auto Const Mandatory
+ObjectReference Property HoldingCellMarker Auto Const Mandatory
+
+;
 ; Idle animation: Struggle with hands bound on back.
 ;
 Idle Property HandcuffsOnBackStruggle Auto Const Mandatory

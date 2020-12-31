@@ -349,19 +349,19 @@ Function ConvertLegacyHandcuffs(ObjectReference item)
             baseId = (256 - modId) * 0x1000000 + formId
         EndIf
         ; spawn handcuffs, with mods if necessary
-        RealHandcuffs:Handcuffs replacement
+        RealHandcuffs:HandcuffsBase replacement
         ObjectReference cont = item.GetContainer()
         If ((baseId * 37) % 100 <= PercentHinged)
             If (cont == None)
-                replacement = item.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:Handcuffs
+                replacement = item.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:HandcuffsBase
             Else
-                replacement = cont.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:Handcuffs
+                replacement = cont.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:HandcuffsBase
             EndIf
         Else
             If (cont == None)
-                replacement = item.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:Handcuffs
+                replacement = item.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:HandcuffsBase
             Else
-                replacement = cont.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:Handcuffs
+                replacement = cont.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:HandcuffsBase
             EndIf
         EndIf
         replacement.EnableNoWait()

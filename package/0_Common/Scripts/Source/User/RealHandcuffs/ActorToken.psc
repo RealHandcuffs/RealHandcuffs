@@ -91,7 +91,9 @@ EndFunction
 ;
 Function Uninitialize()
     If (_target != None)
-        SuspendEffectsAndAnimations()
+        If (_target.IsBoundGameObjectAvailable())
+            SuspendEffectsAndAnimations()
+        EndIf
         UnregisterForRemoteEvent(_target, "OnItemEquipped")
         UnregisterForRemoteEvent(_target, "OnItemUnequipped")
     EndIf
