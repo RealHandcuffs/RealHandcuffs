@@ -125,6 +125,7 @@ EndFunction
 ; Set internal state after the restraint has been equipped and applied.
 ;
 Function SetStateAfterEquip(Actor target, Bool interactive)
+    CancelTimer(UnequipAfterModChange)
 EndFunction
 
 ;
@@ -794,6 +795,8 @@ EndFunction
 ;
 Group Timers
     Int Property UnlockTimedLock = 1 AutoReadOnly
+    Int Property UnequipAfterModChange = 2 AutoReadOnly
+    Int Property EquipAfterModChange = 3 AutoReadOnly
 EndGroup
 
 ;
@@ -802,5 +805,18 @@ EndGroup
 Event OnTimerGameTime(int aiTimerID)
     If (aiTimerID == UnlockTimedLock && HasKeyword(Library.Resources.Locked))
         OpenTimedLock()
+    ElseIf (aiTimerID == UnequipAfterModChange)
+        Actor target = GetContainer() as Actor
+        Form baseObject = GetBaseObject()
+        If (target != None)
+            target.UnequipItem(baseObject, false, true) ; should get reverted
+        EndIf
+        StartTimer(0.1, EquipAfterModChange) ; in case it did not get reverted
+    ElseIf (aiTimerID == EquipAfterModChange)
+        Actor target = GetContainer() as Actor
+        Form baseObject = GetBaseObject()
+        If (target != None && !target.IsEquipped(baseObject))
+            ForceEquip(target)
+        EndIf
     EndIf
 EndEvent

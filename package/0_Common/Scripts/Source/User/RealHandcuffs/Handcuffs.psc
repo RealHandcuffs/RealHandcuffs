@@ -55,7 +55,7 @@ EndFunction
 ; Override: Set internal state after the restraint has been equipped and applied.
 ;
 Function SetStateAfterEquip(Actor target, Bool interactive)
-    CancelTimer(EquipAfterPoseModChange)
+    CancelTimer(EquipAfterModChange)
     Parent.SetStateAfterEquip(target, interactive)
     If (!IgnorePoseSettings)
         ObjectMod poseMod = ModArmsCuffedBehindBackRealHandcuffs
@@ -67,7 +67,7 @@ Function SetStateAfterEquip(Actor target, Bool interactive)
             If (token != None)
                 token.RefreshEffectsAndAnimations(false, None)
             EndIf
-            StartTimer(0.1, UnequipAfterPoseModChange)
+            StartTimer(0.1, UnequipAfterModChange)
         EndIf
     EndIf
 EndFunction
@@ -102,16 +102,8 @@ Function CycleMtAnimationForArms(Actor target)
                 token.RefreshEffectsAndAnimations(false, None)
             EndIf
         EndIf
-        StartTimer(0.1, UnequipAfterPoseModChange)
+        StartTimer(0.1, UnequipAfterModChange)
     EndIf
-EndFunction
-
-;
-; Override: Set internal state after the restraint has been unequipped and unapplied.
-;
-Function SetStateAfterUnequip(Actor target, Bool interactive)
-    CancelTimer(UnequipAfterPoseModChange)
-    Parent.SetStateAfterUnequip(target, interactive)
 EndFunction
 
 ;
@@ -158,33 +150,3 @@ Bool Function StartPlayerUseToolsInteraction(ObjectReference workshopRef)
     Library.ClearInteractionType()
     Return false
 EndFunction
-
-;
-; Group for timer events
-;
-Group Timers
-    Int Property UnequipAfterPoseModChange = 2000 AutoReadOnly
-    Int Property EquipAfterPoseModChange = 2001 AutoReadOnly
-EndGroup
-
-;
-; Continue equip interaction.
-;
-Event OnTimer(int aiTimerID)
-    If (aiTimerID == UnequipAfterPoseModChange)
-        Actor target = GetContainer() as Actor
-        Form baseObject = GetBaseObject()
-        If (target != None)
-            target.UnequipItem(baseObject, false, true) ; should get reverted
-        EndIf
-        StartTimer(0.1, EquipAfterPoseModChange) ; in case it did not get reverted
-    ElseIf (aiTimerID == EquipAfterPoseModChange)
-        Actor target = GetContainer() as Actor
-        Form baseObject = GetBaseObject()
-        If (target != None && !target.IsEquipped(baseObject))
-            ForceEquip(target)
-        EndIf
-    Else
-        Parent.OnTimer(aiTimerID)
-    EndIf
-EndEvent

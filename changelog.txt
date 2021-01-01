@@ -514,3 +514,7 @@ Version 0.4.12 Beta 2
 crash fix
 - fix a crash caused by handling disabled actors in vanilla scene integration
 - api fix: try to prevent crashes when handling disabled actors, though this is still unreliable and should not be done
+
+Version 0.4.12 Beta 3
+=====================
+add new function RefreshRestraint to ThirdPartyApi (no other changes, this update is for modders only)
