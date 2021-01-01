@@ -63,7 +63,8 @@ Function Initialize(Actor myTarget)
     RegisterForRemoteEvent(myTarget, "OnCommandModeGiveCommand")
     RegisterForRemoteEvent(myTarget, "OnCommandModeCompleteCommand")
     RegisterForRemoteEvent(myTarget, "OnCommandModeExit")
-    RegisterForRemoteEvent(myTarget, "OnDeath") 
+    RegisterForRemoteEvent(myTarget, "OnDeath")
+    RegisterForRemoteEvent(myTarget, "OnLoad")
     RegisterForRemoteEvent(myTarget, "OnUnload") 
     RegisterForRemoteEvent(myTarget, "OnWorkshopNPCTransfer")
     WorkshopNpcScript workshopNpc = myTarget as WorkshopNpcScript
@@ -88,6 +89,7 @@ Function Uninitialize()
     CancelTimer(DestroyNpcToken) ; may do nothing but that is fine
     CancelTimer(UpdateWorkshopSandboxLocation) ; may do nothing but that is fine
     CancelTimer(CheckForVertibirdRideEnd) ; may do nothing but that is fine
+    CancelTimer(EquipRestraintsWhenEnabled) ; may do nothing but that is fine
     If (_preventUnequipAllBug != None)
         CancelTimer(ReequipItemsAffectedByUnequipAllBug)
         _preventUnequipAllBug = None
@@ -109,6 +111,7 @@ Function Uninitialize()
         UnregisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
         UnregisterForRemoteEvent(Target, "OnCommandModeExit")
         UnregisterForRemoteEvent(Target, "OnDeath")
+        UnregisterForRemoteEvent(Target, "OnLoad")
         UnregisterForRemoteEvent(Target, "OnUnload")
         UnregisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
         If (Library.RestrainedNpcs.Find(Target) >= 0)
@@ -247,6 +250,7 @@ Function RefreshEventRegistrations()
     UnregisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
     UnregisterForRemoteEvent(Target, "OnCommandModeExit")
     UnregisterForRemoteEvent(Target, "OnDeath")
+    UnregisterForRemoteEvent(Target, "OnLoad")
     UnregisterForRemoteEvent(Target, "OnUnload")
     UnregisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
     Parent.RefreshEventRegistrations()
@@ -254,7 +258,8 @@ Function RefreshEventRegistrations()
     RegisterForRemoteEvent(Target, "OnCommandModeGiveCommand")
     RegisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
     RegisterForRemoteEvent(Target, "OnCommandModeExit")
-    RegisterForRemoteEvent(Target, "OnDeath") 
+    RegisterForRemoteEvent(Target, "OnDeath")
+    RegisterForRemoteEvent(Target, "OnLoad")
     RegisterForRemoteEvent(Target, "OnUnload") 
     RegisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
     If (workshopNpc != None)
@@ -323,7 +328,6 @@ Function ApplyEffects(Bool forceRefresh, RealHandcuffs:RestraintBase handsBoundB
         CancelTimer(StartCheckingWeapon) ; may do nothing but that is fine
         CancelTimer(WaitForConsciousness) ; may do nothing but that is fine
         UnregisterForAnimationEvent(Target, "weaponDraw") ; may do nothing, too
-        UnregisterForRemoteEvent(Target, "OnLoad"); may do nothing, too
         ; remove 'bound hands' keyword
         Target.ResetKeyword(BoundHands)
         ; restore TeammateReadyWeapon_DO keyword if necessary
@@ -482,6 +486,15 @@ Function KickAnimationSubsystem()
 EndFunction
 
 ;
+; Override: Tell the token to equip restraints that are not equipped once the actor is enabled.
+;
+Function EquipRestraintsWhenEnabled()
+    If (Target.Is3DLoaded())
+        StartTimer(3, EquipRestraintsWhenEnabled)
+    EndIf
+EndFunction
+
+;
 ; When adding an item to a NPC by script directly after it has been unequipped and removed,
 ; a engine bug is triggered, causing the NPC to unequip all items. This function triggers a (bad)
 ; workaround to requip them again.
@@ -552,6 +565,7 @@ EndEvent
 ; Event handler for unload of the actor.
 ;
 Event ObjectReference.OnUnload(ObjectReference sender)
+    CancelTimer(EquipRestraintsWhenEnabled) ; may do nothing but that is fine
     ; destoy the token if actor is deleted
     Actor oldTarget = Target
     If (oldTarget.IsDeleted())
@@ -566,7 +580,21 @@ EndEvent
 ; Event handler for 3D of actor loaded
 ;
 Event ObjectReference.OnLoad(ObjectReference sender)
-    RegisterForAnimationEvent(Target, "weaponDraw") ; restore animation event after it was lost/could not be registered
+    If (_handsBoundBehindBack)
+        RegisterForAnimationEvent(Target, "weaponDraw") ; restore animation event after it was lost/could not be registered
+    EndIf
+    Int index = 0
+    While (index < Restraints.Length)
+        RealHandcuffs:RestraintBase restraint = Restraints[index]
+        If (!Target.IsEquipped(restraint.GetBaseObject()))
+            If (!Target.IsEnabled())
+                StartTimer(3, EquipRestraintsWhenEnabled)
+                Return
+            EndIf
+            restraint.ForceEquip()
+        EndIf
+        index += 1
+    EndWhile
 EndEvent
 
 ;
@@ -1163,7 +1191,6 @@ Function FixWeaponDrawn()
         CancelTimer(WaitForConsciousness)
         CancelTimer(StartCheckingWeapon)
         UnregisterForAnimationEvent(Target, "weaponDraw")
-        UnregisterForRemoteEvent(Target, "OnLoad")
         Target.RemoveKeyword(TeammateReadyWeapon_DO)
         _removedReadyWeaponKeyword = true
         If (Library.Settings.InfoLoggingEnabled)
@@ -1180,7 +1207,6 @@ Function FixWeaponDrawn()
         CancelTimer(WaitForConsciousness)
         CancelTimer(StartCheckingWeapon)
         UnregisterForAnimationEvent(Target, "weaponDraw")
-        UnregisterForRemoteEvent(Target, "OnLoad")
         StartTimer(3, WaitForConsciousness)
     Else
         ; For some unknown reason NPCs sometimes get stuck with drawn weapon animations.
@@ -1192,7 +1218,6 @@ Function FixWeaponDrawn()
             CancelTimer(WaitForConsciousness)
             CancelTimer(StartCheckingWeapon)
             UnregisterForAnimationEvent(Target, "weaponDraw")
-            UnregisterForRemoteEvent(Target, "OnLoad")
             If (Library.Settings.InfoLoggingEnabled)
                 RealHandcuffs:Log.Info("Initializing MT graph: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
             EndIf
@@ -1289,6 +1314,7 @@ Group Timers
     Int Property WaitForCombatEnd = 1007 AutoReadOnly
     Int Property UpdateWorkshopSandboxLocation = 1008 AutoReadOnly
     Int Property CheckForVertibirdRideEnd = 1009 AutoReadOnly
+    Int Property EquipRestraintsWhenEnabled = 1010 AutoReadOnly
 EndGroup
 
 ;
@@ -1358,7 +1384,6 @@ Event OnTimer(Int aiTimerID)
                 If (Target.WaitFor3DLoad())
                     RegisterForAnimationEvent(Target, "weaponDraw")
                 EndIf
-                RegisterForRemoteEvent(Target, "OnLoad")
                 If (Target.IsWeaponDrawn())
                     FixWeaponDrawn()
                 EndIf
@@ -1399,6 +1424,22 @@ Event OnTimer(Int aiTimerID)
             RemoveFromHoldingCell()
         Else
             StartTimer(3, CheckForVertibirdRideEnd)
+        EndIf
+    ElseIf (aiTimerID == EquipRestraintsWhenEnabled)
+RealHandcuffs:Log.Error("OnTimer: EquipRestraintsWhenEnabled " + RealHandcuffs:Log.FormIdAsString(Target), Library.Settings);TODO
+        If (Target.Is3DLoaded())
+            If (Target.IsEnabled())
+                Int index = 0
+                While (index < Restraints.Length)
+                    RealHandcuffs:RestraintBase restraint = Restraints[index]
+                    If (!Target.IsEquipped(restraint.GetBaseObject()))
+                        restraint.ForceEquip()
+                    EndIf
+                    index += 1
+                EndWhile
+            Else
+                StartTimer(3, EquipRestraintsWhenEnabled)
+            EndIf
         EndIf
     Else
         Parent.OnTimer(aiTimerID)

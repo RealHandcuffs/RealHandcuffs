@@ -509,6 +509,14 @@ Function KickAnimationSubsystem()
 EndFunction
 
 ;
+; Tell the token to equip restraints that are not equipped once the actor is enabled.
+; Equipping armor on disabled actors can cause crashes, so we need to defer it until the actor is enabled.
+;
+Function EquipRestraintsWhenEnabled()
+    RealHandcuffs:Log.Error("Missing EquipRestraintsWhenEnabled override in subclass.", Library.Settings)
+EndFunction
+
+;
 ; Handle a remote trigger being fired in the vicinity.
 ;
 Bool Function HandleRemoteTriggerFired()

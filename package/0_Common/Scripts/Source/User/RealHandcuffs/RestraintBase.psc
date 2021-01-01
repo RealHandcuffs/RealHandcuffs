@@ -518,18 +518,24 @@ Function ForceEquip(Bool unequipConflicting = false, Bool setDefaultParameters =
         EndIf
         Form baseObject = GetBaseObject()
         If (!target.IsEquipped(baseObject) && !target.IsInPowerArmor())
-            Int count = target.GetItemCount(baseObject)
-            If (count == 1)
-                target.EquipItem(baseObject, target != Game.GetPlayer(), true)
+            If (!target.IsEnabled())
+                If (token != None)
+                    token.EquipRestraintsWhenEnabled()
+                EndIf
             Else
-                ; equipping can only be done by base object, so we need to take extra steps to make sure
-                ; that this reference is equipped and not another one if there are multiple in the inventory
-                ObjectReference invisibleContainer = target.PlaceAtMe(Library.Resources.InvisibleContainer, 1, false, true, true)
-                target.RemoveItem(baseObject, count, true, invisibleContainer)
-                target.AddItem(Self, 1, true)
-                target.EquipItem(baseObject, target != Game.GetPlayer(), true)
-                invisibleContainer.RemoveItem(baseObject, count - 1, true, target)
-                invisibleContainer.Delete()
+                Int count = target.GetItemCount(baseObject)
+                If (count == 1)
+                    target.EquipItem(baseObject, target != Game.GetPlayer(), true)
+                Else
+                    ; equipping can only be done by base object, so we need to take extra steps to make sure
+                    ; that this reference is equipped and not another one if there are multiple in the inventory
+                    ObjectReference invisibleContainer = target.PlaceAtMe(Library.Resources.InvisibleContainer, 1, false, true, true)
+                    target.RemoveItem(baseObject, count, true, invisibleContainer)
+                    target.AddItem(Self, 1, true)
+                    target.EquipItem(baseObject, target != Game.GetPlayer(), true)
+                    invisibleContainer.RemoveItem(baseObject, count - 1, true, target)
+                    invisibleContainer.Delete()
+                EndIf
             EndIf
         EndIf
     EndIf
@@ -551,7 +557,7 @@ Function ForceUnequip()
             SetStateAfterUnequip(target, false)
         EndIf
         Form baseObject = GetBaseObject()
-        If (target.IsEquipped(baseObject))
+        If (target.IsEquipped(baseObject) && target.IsEnabled())
             target.UnequipItem(baseObject, false, true)
         EndIf
     EndIf

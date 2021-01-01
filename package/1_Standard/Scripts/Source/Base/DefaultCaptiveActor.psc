@@ -67,7 +67,7 @@ Event OnLoad()
 		SetRestrained()
 		SetFactionRank(BoundCaptiveFaction, 0)
 		; begin RealHandcuffs changes
-		If (IntegrateHandcuffsInVanillaScenes())
+		If (IntegrateHandcuffsInVanillaScenes() && IsEnabled())
 			If (_prisonerFurniture != None && _prisonerFurniture.IsBoundGameObjectAvailable() && !_prisonerFurniture.IsDeleted() && !_prisonerFurniture.IsDisabled() && !_prisonerFurniture.IsDestroyed() && _prisonerFurniture.WaitFor3DLoad() && WaitFor3DLoad())
 				SnapIntoInteraction(_prisonerFurniture)
 			EndIf
@@ -75,8 +75,7 @@ Event OnLoad()
 			SetResetNoPackage(false)
 			CreateAndEquipHandcuffs()
 			ObjectReference currentFurniture = GetFurnitureReference()
-			If (IsPrisonerFurniture(currentFurniture))
-				currentFurniture.WaitFor3DLoad()
+			If (IsPrisonerFurniture(currentFurniture) && currentFurniture.WaitFor3DLoad() && WaitFor3DLoad())
 				StartPrisonerPose(currentFurniture, false)
 			EndIf
 		EndIf
@@ -257,7 +256,6 @@ Function CreateAndEquipHandcuffs()
             kArgs[2] = 0  ; chance for high-security
             kArgs[3] = 0  ; empty flags
             ObjectReference handcuffs = api.CallFunction("CreateRandomHandcuffsEquipOnActor", kArgs) as ObjectReference
-            isBound = (handcuffs != None)
         EndIf
     EndIf
 EndFunction
@@ -345,7 +343,7 @@ ObjectReference Function StopPrisonerPose()
 EndFunction
 
 Event OnSit(ObjectReference akFurniture)
-    If (IsPrisonerFurniture(akFurniture))
+    If (IsPrisonerFurniture(akFurniture) && akFurniture.WaitFor3DLoad() && WaitFor3DLoad())
         StartPrisonerPose(akFurniture, true)
     EndIf
 EndEvent

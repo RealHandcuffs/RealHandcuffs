@@ -68,16 +68,17 @@ Event OnLoad()
 		; begin RealHandcuffs changes
 		If (IntegrateHandcuffsInVanillaScenes())
 			Actor prisoner = GetActorReference()
-			If (_prisonerFurniture != None && _prisonerFurniture.IsBoundGameObjectAvailable() && !_prisonerFurniture.IsDeleted() && !_prisonerFurniture.IsDisabled() && !_prisonerFurniture.IsDestroyed() && _prisonerFurniture.WaitFor3DLoad() && prisoner.WaitFor3DLoad())
-				prisoner.SnapIntoInteraction(_prisonerFurniture)
-			EndIf
-			_prisonerFurniture = None
-			SetResetNoPackage(false)
-			CreateAndEquipHandcuffs()
-			ObjectReference currentFurniture = prisoner.GetFurnitureReference()
-			If (IsPrisonerFurniture(currentFurniture))
-				currentFurniture.WaitFor3DLoad()
-				StartPrisonerPose(currentFurniture, false)
+			If (prisoner.IsEnabled())
+				If (_prisonerFurniture != None && _prisonerFurniture.IsBoundGameObjectAvailable() && !_prisonerFurniture.IsDeleted() && !_prisonerFurniture.IsDisabled() && !_prisonerFurniture.IsDestroyed() && _prisonerFurniture.WaitFor3DLoad() && prisoner.WaitFor3DLoad())
+					prisoner.SnapIntoInteraction(_prisonerFurniture)
+				EndIf
+				_prisonerFurniture = None
+				SetResetNoPackage(false)
+				CreateAndEquipHandcuffs()
+				ObjectReference currentFurniture = prisoner.GetFurnitureReference()
+				If (IsPrisonerFurniture(currentFurniture) && currentFurniture.WaitFor3DLoad())
+					StartPrisonerPose(currentFurniture, false)
+				EndIf
 			EndIf
 		EndIf
 		; end RealHandcuffs changes
@@ -259,7 +260,6 @@ Function CreateAndEquipHandcuffs()
             kArgs[2] = 0  ; chance for high-security
             kArgs[3] = 0  ; empty flags
             ObjectReference handcuffs = api.CallFunction("CreateRandomHandcuffsEquipOnActor", kArgs) as ObjectReference
-            isBound = (handcuffs != None)
         EndIf
     EndIf
 EndFunction
@@ -352,7 +352,7 @@ ObjectReference Function StopPrisonerPose()
 EndFunction
 
 Event OnSit(ObjectReference akFurniture)
-    If (IsPrisonerFurniture(akFurniture))
+    If (IsPrisonerFurniture(akFurniture) && akFurniture.WaitFor3DLoad() && GetActorReference().WaitFor3DLoad())
         StartPrisonerPose(akFurniture, true)
     EndIf
 EndEvent

@@ -508,3 +508,9 @@ Version 0.4.12 Beta 1
 virtibird riding for bound NPCs
 - allow up to three bound NPCs to ride in the cargo compartment of vertibirds when accompanying the player (they will be locked up/released automatically)
 - fix error in handcuffs converter causing some legacy handcuffs (misc item) to disappear instead of being converted to real handcuffs
+
+Version 0.4.12 Beta 2
+=====================
+crash fix
+- fix a crash caused by handling disabled actors in vanilla scene integration
+- api fix: try to prevent crashes when handling disabled actors, though this is still unreliable and should not be done
