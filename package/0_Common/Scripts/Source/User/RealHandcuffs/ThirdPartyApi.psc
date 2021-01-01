@@ -892,8 +892,9 @@ EndFunction
 ;
 
 ;
-; This function should be called after changing mods of a restraint if the restraint is in the player inventory, or worn by any actor,
-; or in a container that the player is currently interacting with (i.e. opened inventory of the container in UI).
+; This function should be called after changing mods of a restraint if the restraint is worn by any actor, or in a container
+; that the player is currently interacting with (i.e. in player inventory and inventory UI is open, or in a container and the
+; player has opened the container in the container UI).
 ; This function can be a bit slow, so it should only be used when necessary.
 ; Added in api version: 13
 ;
