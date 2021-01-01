@@ -1426,7 +1426,6 @@ Event OnTimer(Int aiTimerID)
             StartTimer(3, CheckForVertibirdRideEnd)
         EndIf
     ElseIf (aiTimerID == EquipRestraintsWhenEnabled)
-RealHandcuffs:Log.Error("OnTimer: EquipRestraintsWhenEnabled " + RealHandcuffs:Log.FormIdAsString(Target), Library.Settings);TODO
         If (Target.Is3DLoaded())
             If (Target.IsEnabled())
                 Int index = 0
