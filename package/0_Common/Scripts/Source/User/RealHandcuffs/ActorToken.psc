@@ -91,7 +91,9 @@ EndFunction
 ;
 Function Uninitialize()
     If (_target != None)
-        SuspendEffectsAndAnimations()
+        If (_target.IsBoundGameObjectAvailable())
+            SuspendEffectsAndAnimations()
+        EndIf
         UnregisterForRemoteEvent(_target, "OnItemEquipped")
         UnregisterForRemoteEvent(_target, "OnItemUnequipped")
     EndIf
@@ -504,6 +506,14 @@ EndFunction
 ;
 Function KickAnimationSubsystem()
     RealHandcuffs:Log.Error("Missing KickAnimations override in subclass.", Library.Settings)
+EndFunction
+
+;
+; Tell the token to equip restraints that are not equipped once the actor is enabled.
+; Equipping armor on disabled actors can cause crashes, so we need to defer it until the actor is enabled.
+;
+Function EquipRestraintsWhenEnabled()
+    RealHandcuffs:Log.Error("Missing EquipRestraintsWhenEnabled override in subclass.", Library.Settings)
 EndFunction
 
 ;

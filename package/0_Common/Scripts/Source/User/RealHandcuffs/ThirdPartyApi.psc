@@ -36,9 +36,10 @@ EndFunction
 ; 10            0.4.4 RC 1
 ; 11            0.4.9 beta 1
 ; 12            0.4.10
+; 13            0.4.12 beta 3
 ;
 Int Function ApiVersion()
-    Return 12
+    Return 13
 EndFunction
 
 
@@ -889,6 +890,41 @@ EndFunction
 ;
 ; --------- Functions to modify existing restraints. ----------
 ;
+
+;
+; This function should be called after changing mods of a restraint if the restraint is worn by any actor, or in a container
+; that the player is currently interacting with (i.e. in player inventory and inventory UI is open, or in a container and the
+; player has opened the container in the container UI).
+; This function can be a bit slow, so it should only be used when necessary.
+; Added in api version: 13
+;
+Function RefreshRestraint(ObjectReference restraint)
+    RealHandcuffs:RestraintBase restraintBase = restraint as RealHandcuffs:RestraintBase
+    If (restraintBase != None)
+        ; special effects and/or animations might have changed, refresh them
+        Actor target = restraintBase.SearchCurrentTarget()
+        If (target != None)
+            RealHandcuffs:ActorToken token = Library.TryGetActorToken(target)
+            If (token != None) ; should always be true
+                token.RefreshEffectsAndAnimations(true, None)
+            EndIf
+        EndIf
+        ; the name might have changed, force the UI to update
+        ; also force the game to redraw the armor addon if the restraint is worn
+        ObjectReference currentContainer = restraintBase.GetContainer()
+        Bool containerMenuOpen = UI.IsMenuOpen("ContainerMenu")
+        If (currentContainer == Game.GetPlayer() || currentContainer != None && containerMenuOpen)
+            restraintBase.Drop(true) ; will also unequip if currently equipped
+            currentContainer.AddItem(restraintBase, 1, true)
+            If (target != None && currentContainer == target && !target.IsInPowerArmor())
+                restraintBase.ForceEquip(false, false)
+                restraintBase.KickContainerUI(currentContainer) ; force container UI to update worn/not worn state
+            EndIf
+        ElseIf (target != None)
+            restraintBase.StartTimer(0.1, restraintBase.UnequipAfterModChange) ; will reequip automatically
+        EndIf
+    EndIf
+EndFunction
 
 ;
 ; Change the lock of a restraint to a standard lock (this is the default, so it is only necessary if the lock was modified previously).

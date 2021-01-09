@@ -47,7 +47,7 @@ Event OnLoad()
 	if bound
 		GetActorReference().ChangeAnimFlavor(AnimFlavorHandsBound)
 		; begin RealHandcuffs changes
-		If (IntegrateHandcuffsInVanillaScenes())
+		If (IntegrateHandcuffsInVanillaScenes() && GetActorReference().IsEnabled())
 			SetResetNoPackage(false)
 			CreateAndEquipHandcuffs()
 		EndIf
@@ -266,7 +266,6 @@ Function CreateAndEquipHandcuffs()
             kArgs[2] = 0  ; chance for high-security
             kArgs[3] = 0  ; empty flags
             ObjectReference handcuffs = api.CallFunction("CreateRandomHandcuffsEquipOnActor", kArgs) as ObjectReference
-            isBound = (handcuffs != None)
         EndIf
     EndIf
 EndFunction

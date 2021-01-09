@@ -85,6 +85,7 @@ EndFunction
 Function Uninitialize()
     CancelTimer(StartCheckingWeapon) ; may do nothing but that is fine
     CancelTimer(CheckConsistency) ; may do nothing but that is fine
+    CancelTimer(EquipRestraintsWhenEnabled) ; may do nothing but that is fine
     UnregisterForRemoteEvent(Target, "OnGetUp")
     UnregisterForRemoteEvent(Target, "OnSit")
     UnregisterKeys()
@@ -357,6 +358,13 @@ Function KickAnimationSubsystem()
         Game.GetPlayer().ChangeAnimFlavor(AnimFlavorFahrenheit)
         Game.GetPlayer().ChangeAnimFlavor()
     EndIf
+EndFunction
+
+;
+; Override: Tell the token to equip restraints that are not equipped once the actor is enabled.
+;
+Function EquipRestraintsWhenEnabled()
+    StartTimer(1, EquipRestraintsWhenEnabled)
 EndFunction
 
 ;
@@ -917,6 +925,7 @@ EndEvent
 Group Timers
     Int Property CheckConsistency = 1001 AutoReadOnly
     Int Property StartCheckingWeapon = 1002 AutoReadOnly
+    Int Property EquipRestraintsWhenEnabled = 1003 AutoReadOnly
 EndGroup
 
 ;
@@ -933,6 +942,19 @@ Event OnTimer(Int aiTimerID)
             If (Target.IsWeaponDrawn())
                 CheckConsistency(Target)
             EndIf
+        EndIf
+    ElseIf (aiTimerID == EquipRestraintsWhenEnabled)
+        If (Target.IsEnabled())
+            Int index = 0
+            While (index < Restraints.Length)
+                RealHandcuffs:RestraintBase restraint = Restraints[index]
+                If (!Target.IsEquipped(restraint.GetBaseObject()))
+                    restraint.ForceEquip()
+                EndIf
+                index += 1
+            EndWhile
+        Else
+            StartTimer(1, EquipRestraintsWhenEnabled)
         EndIf
     Else
         Parent.OnTimer(aiTimerID)

@@ -63,7 +63,8 @@ Function Initialize(Actor myTarget)
     RegisterForRemoteEvent(myTarget, "OnCommandModeGiveCommand")
     RegisterForRemoteEvent(myTarget, "OnCommandModeCompleteCommand")
     RegisterForRemoteEvent(myTarget, "OnCommandModeExit")
-    RegisterForRemoteEvent(myTarget, "OnDeath") 
+    RegisterForRemoteEvent(myTarget, "OnDeath")
+    RegisterForRemoteEvent(myTarget, "OnLoad")
     RegisterForRemoteEvent(myTarget, "OnUnload") 
     RegisterForRemoteEvent(myTarget, "OnWorkshopNPCTransfer")
     WorkshopNpcScript workshopNpc = myTarget as WorkshopNpcScript
@@ -87,22 +88,30 @@ Function Uninitialize()
     CancelTimer(CheckConsistency) ; may do nothing but that is fine
     CancelTimer(DestroyNpcToken) ; may do nothing but that is fine
     CancelTimer(UpdateWorkshopSandboxLocation) ; may do nothing but that is fine
+    CancelTimer(CheckForVertibirdRideEnd) ; may do nothing but that is fine
+    CancelTimer(EquipRestraintsWhenEnabled) ; may do nothing but that is fine
     If (_preventUnequipAllBug != None)
         CancelTimer(ReequipItemsAffectedByUnequipAllBug)
         _preventUnequipAllBug = None
     EndIf
     If (Target != None)
+        If (Target.IsBoundGameObjectAvailable() && IsInHoldingCell())
+            RemoveFromHoldingCell()
+        EndIf
         WorkshopNpcScript workshopNpc = Target as WorkshopNpcScript
         If (workshopNpc != None)
             UnregisterForCustomEvent(WorkshopParent, "WorkshopActorAssignedToWork")
             UnregisterForCustomEvent(WorkshopParent, "WorkshopActorUnassigned")
-            Target.SetLinkedRef(None, WorkshopSandboxLocation)
+            If (Target.IsBoundGameObjectAvailable())
+                Target.SetLinkedRef(None, WorkshopSandboxLocation)
+            EndIf
         EndIf
         UnregisterForRemoteEvent(Target, "OnCommandModeEnter")
         UnregisterForRemoteEvent(Target, "OnCommandModeGiveCommand")
         UnregisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
         UnregisterForRemoteEvent(Target, "OnCommandModeExit")
         UnregisterForRemoteEvent(Target, "OnDeath")
+        UnregisterForRemoteEvent(Target, "OnLoad")
         UnregisterForRemoteEvent(Target, "OnUnload")
         UnregisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
         If (Library.RestrainedNpcs.Find(Target) >= 0)
@@ -127,16 +136,29 @@ EndFunction
 ; Override: Refresh data after the game has been loaded.
 ;
 Function RefreshOnGameLoad(Bool upgrade)
+    Bool isInHoldingCell = IsInHoldingCell()
+    If (isInHoldingCell)
+        Actor owner = Target.GetLinkedRef(Library.Resources.LinkedOwnerSpecial) as Actor
+        ObjectReference vertibird = Target.GetLinkedRef(Library.Resources.LinkedVertibird)
+        If (owner != None && vertibird != None && !IsRidingVertibird(owner, vertibird))
+            RemoveFromHoldingCell() ; fallback in case the timer did somehow not work
+            isInHoldingCell = false
+        EndIf
+    EndIf
     Actor npcTarget = Target
     RealHandcuffs:WaitMarkerBase waitMarker = None
     Bool hasTemporaryWaitMarker = false
     Bool temporaryWaitMarkerDisablePoseInteraction = false
     String temporaryWaitMarkerAnimation = ""
+    Bool enableAI = false
     If (npcTarget != None && upgrade)
-        If (Library.Settings.InfoLoggingEnabled)
-            RealHandcuffs:Log.Info("Disabling AI: " + RealHandcuffs:Log.FormIdAsString(npcTarget) + " " + npcTarget.GetDisplayName(), Library.Settings)
+        enableAI = npcTarget.IsAIEnabled()
+        If (enableAI)
+            If (Library.Settings.InfoLoggingEnabled)
+                RealHandcuffs:Log.Info("Disabling AI: " + RealHandcuffs:Log.FormIdAsString(npcTarget) + " " + npcTarget.GetDisplayName(), Library.Settings)
+            EndIf
+            npcTarget.EnableAI(false, false)
         EndIf
-        npcTarget.EnableAI(false, false)
         CancelTimer(UpdateWorkshopSandboxLocation) ; may do nothing but that is fine
         waitMarker = npcTarget.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase
         If (waitMarker != None && waitMarker.GetRegisteredActor() == npcTarget)
@@ -144,7 +166,9 @@ Function RefreshOnGameLoad(Bool upgrade)
                 hasTemporaryWaitMarker = true
                 temporaryWaitMarkerAnimation = waitMarker.Animation
                 temporaryWaitMarkerDisablePoseInteraction = waitMarker.DisablePoseInteraction
-                npcTarget.MoveTo(waitMarker) ; workaround to ensure position stays correct after wait marker has been deleted and recreated
+                If (!isInHoldingCell)
+                    npcTarget.MoveTo(waitMarker) ; workaround to ensure position stays correct after wait marker has been deleted and recreated
+                EndIf
                 waitMarker = None
             EndIf
         EndIf
@@ -182,7 +206,7 @@ Function RefreshOnGameLoad(Bool upgrade)
                     waitMarker.Register(Target)
                 EndIf
             EndIf
-            If (hasTemporaryWaitMarker)
+            If (hasTemporaryWaitMarker && !isInHoldingCell)
                 ; try to restore temporary wait marker
                 waitMarker = Target.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase
                 If (waitMarker != None && waitMarker.GetRegisteredActor() == Target)
@@ -204,7 +228,7 @@ Function RefreshOnGameLoad(Bool upgrade)
             EndIf
         EndIf
     EndIf
-    If (npcTarget != None && upgrade) ; use npcTarget to make sure that EnableAI is done even if RefreshOnGameLoad has made changes
+    If (npcTarget != None && upgrade && enableAI) ; use npcTarget to make sure that EnableAI is done even if RefreshOnGameLoad has made changes
         If (Library.Settings.InfoLoggingEnabled)
             RealHandcuffs:Log.Info("Enabling AI: " + RealHandcuffs:Log.FormIdAsString(npcTarget) + " " + npcTarget.GetDisplayName(), Library.Settings)
         EndIf
@@ -226,6 +250,7 @@ Function RefreshEventRegistrations()
     UnregisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
     UnregisterForRemoteEvent(Target, "OnCommandModeExit")
     UnregisterForRemoteEvent(Target, "OnDeath")
+    UnregisterForRemoteEvent(Target, "OnLoad")
     UnregisterForRemoteEvent(Target, "OnUnload")
     UnregisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
     Parent.RefreshEventRegistrations()
@@ -233,7 +258,8 @@ Function RefreshEventRegistrations()
     RegisterForRemoteEvent(Target, "OnCommandModeGiveCommand")
     RegisterForRemoteEvent(Target, "OnCommandModeCompleteCommand")
     RegisterForRemoteEvent(Target, "OnCommandModeExit")
-    RegisterForRemoteEvent(Target, "OnDeath") 
+    RegisterForRemoteEvent(Target, "OnDeath")
+    RegisterForRemoteEvent(Target, "OnLoad")
     RegisterForRemoteEvent(Target, "OnUnload") 
     RegisterForRemoteEvent(Target, "OnWorkshopNPCTransfer")
     If (workshopNpc != None)
@@ -302,7 +328,6 @@ Function ApplyEffects(Bool forceRefresh, RealHandcuffs:RestraintBase handsBoundB
         CancelTimer(StartCheckingWeapon) ; may do nothing but that is fine
         CancelTimer(WaitForConsciousness) ; may do nothing but that is fine
         UnregisterForAnimationEvent(Target, "weaponDraw") ; may do nothing, too
-        UnregisterForRemoteEvent(Target, "OnLoad"); may do nothing, too
         ; remove 'bound hands' keyword
         Target.ResetKeyword(BoundHands)
         ; restore TeammateReadyWeapon_DO keyword if necessary
@@ -331,8 +356,9 @@ Function ApplyEffects(Bool forceRefresh, RealHandcuffs:RestraintBase handsBoundB
         Target.RemoveSpell(BadAtSwimming)
         ; unregister furniture sit event
         UnregisterForRemoteEvent(Target, "OnSit")
-        ; unregister from player teleport
+        ; unregister from player teleport and from player entering vertibird
         UnregisterForPlayerTeleport()
+        UnregisterForRemoteEvent(Game.GetPlayer(), "OnPlayerEnterVertibird")
         ; revert changes made to current behavior by commands
         If (_commandModePackagesOverridden)
             Library.RestoreCommandModeActivatePackage()
@@ -402,8 +428,9 @@ Function ApplyEffects(Bool forceRefresh, RealHandcuffs:RestraintBase handsBoundB
                 Target.PlayIdleAction(Library.Resources.ActionInteractionExitQuick) ; kick out of furniture
             EndIf
         EndIf
-        ; register for player teleport
+        ; register for player teleport and for player entering vertibird
         RegisterForPlayerTeleport()
+        RegisterForRemoteEvent(Game.GetPlayer(), "OnPlayerEnterVertibird")
         ; apply changes to behavior for current command
         If (Target.IsDoingFavor())
             Library.OverrideCommandModeActivatePackage(CommandModeActivateOverride)
@@ -456,6 +483,15 @@ Function KickAnimationSubsystem()
     ; switch around animation flavors to make the game realize that animation keywords changed
     Target.ChangeAnimFlavor(AnimFlavorFahrenheit)
     Target.ChangeAnimFlavor()
+EndFunction
+
+;
+; Override: Tell the token to equip restraints that are not equipped once the actor is enabled.
+;
+Function EquipRestraintsWhenEnabled()
+    If (Target.Is3DLoaded())
+        StartTimer(3, EquipRestraintsWhenEnabled)
+    EndIf
 EndFunction
 
 ;
@@ -529,6 +565,7 @@ EndEvent
 ; Event handler for unload of the actor.
 ;
 Event ObjectReference.OnUnload(ObjectReference sender)
+    CancelTimer(EquipRestraintsWhenEnabled) ; may do nothing but that is fine
     ; destoy the token if actor is deleted
     Actor oldTarget = Target
     If (oldTarget.IsDeleted())
@@ -543,7 +580,21 @@ EndEvent
 ; Event handler for 3D of actor loaded
 ;
 Event ObjectReference.OnLoad(ObjectReference sender)
-    RegisterForAnimationEvent(Target, "weaponDraw") ; restore animation event after it was lost/could not be registered
+    If (_handsBoundBehindBack)
+        RegisterForAnimationEvent(Target, "weaponDraw") ; restore animation event after it was lost/could not be registered
+    EndIf
+    Int index = 0
+    While (index < Restraints.Length)
+        RealHandcuffs:RestraintBase restraint = Restraints[index]
+        If (!Target.IsEquipped(restraint.GetBaseObject()))
+            If (!Target.IsEnabled())
+                StartTimer(3, EquipRestraintsWhenEnabled)
+                Return
+            EndIf
+            restraint.ForceEquip()
+        EndIf
+        index += 1
+    EndWhile
 EndEvent
 
 ;
@@ -912,7 +963,7 @@ EndFunction
 ; Try to create a temporary wait marker for the target.
 ;
 RealHandcuffs:TemporaryWaitMarker Function TryCreateTemporaryWaitMarker(String animation, Bool disablePoseInteraction)
-    If ((Target.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase) == None)
+    If ((Target.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase) == None && !IsInHoldingCell())
         RealHandcuffs:TemporaryWaitMarker waitMarker = Target.PlaceAtMe(TemporaryWaitMarker, 1, false, true, false) as RealHandcuffs:TemporaryWaitMarker
         If (Library.Settings.InfoLoggingEnabled)
             RealHandcuffs:Log.Info("Created TemporaryWaitMarker " + RealHandcuffs:Log.FormIdAsString(waitMarker) + ".", Library.Settings)
@@ -982,7 +1033,7 @@ EndFunction
 ;
 Event OnPlayerTeleport()
     RealHandcuffs:BoundHandsPackage boundHandsPackage = Target.GetCurrentPackage() as RealHandcuffs:BoundHandsPackage
-    If (boundHandsPackage != None)
+    If (boundHandsPackage != None && !IsInHoldingCell())
         Actor followRoot = boundHandsPackage.GetFollowRoot(Target)
         If (followRoot != None)
             Utility.Wait(1) ; give the game time to move followers etc
@@ -1001,6 +1052,112 @@ Event OnPlayerTeleport()
         EndIf
     EndIf
 EndEvent
+
+;
+; Event handler for player entering vertibird.
+;
+Event Actor.OnPlayerEnterVertibird(Actor sender, ObjectReference akVertibird)
+    RealHandcuffs:BoundHandsPackage boundHandsPackage = Target.GetCurrentPackage() as RealHandcuffs:BoundHandsPackage
+    If (boundHandsPackage != None)
+        Actor followRoot = boundHandsPackage.GetFollowRoot(Target)
+        If (followRoot != None)
+            Bool isRidingVertibird = IsRidingVertibird(followRoot, akVertibird)
+            Int waitCount = 0
+            While (!isRidingVertibird && waitCount < 10) ; give the follow root some time to board in case it is a follower
+                Utility.Wait(1.0)
+                boundHandsPackage = Target.GetCurrentPackage() as RealHandcuffs:BoundHandsPackage
+                If (boundHandsPackage == None)
+                    Return
+                EndIf
+                followRoot = boundHandsPackage.GetFollowRoot(Target)
+                If (followRoot == None)
+                    Return
+                EndIf
+                isRidingVertibird = IsRidingVertibird(followRoot, akVertibird)
+                waitCount += 1
+            EndWhile
+            If (isRidingVertibird && !IsInHoldingCell())
+                If (akVertibird.CountRefsLinkedToMe(Library.Resources.LinkedVertibird) >= 3) ; 3 is hardcoded capacity of vertibird cargo compartment for now
+                    RealHandcuffs:DebugWrapper.Notification("the cargo compartment of " + akVertibird.GetDisplayName() + " is full")
+                Else
+                    Target.SetLinkedRef(akVertibird, Library.Resources.LinkedVertibird) ; keep the race window small
+                    RealHandcuffs:DebugWrapper.Notification(Target.GetDisplayName() + " locked up in cargo compartment of " + akVertibird.GetDisplayName())
+                    MoveToHoldingCell(followRoot)
+                    StartTimer(3, CheckForVertibirdRideEnd)
+                EndIf
+            EndIf
+        EndIf
+    EndIf
+EndEvent
+
+;
+; A helper function checking if an actor is riding a vertibird.
+;
+Bool Function IsRidingVertibird(Actor akActor, ObjectReference akVertibird)
+    Actor vertibirdActor = akVertibird as Actor
+    If (vertibirdActor != None && vertibirdActor.IsBeingRiddenBy(akActor))
+        Return true
+    EndIf
+    If (akActor.GetLinkedRef(Library.Resources.LinkedVertibird) == akVertibird)
+        Return true
+    EndIf
+    Return false
+EndFunction
+
+;
+; Temporarily move the NPC to the holding cell.
+;
+Function MoveToHoldingCell(ObjectReference owner)
+    Target.EnableAI(false, false)
+    Target.MoveTo(Library.Resources.HoldingCellMarker)
+    Target.SetLinkedRef(owner, Library.Resources.LinkedOwnerSpecial)
+    RealHandcuffs:Log.Info("Moved " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " to holding cell.", Library.Settings)
+EndFunction
+
+;
+; Check if the NPC is currently in the holding cell.
+;
+Bool Function IsInHoldingCell()
+    Return Target.GetCurrentLocation() == Library.Resources.HoldingCell
+EndFunction
+
+;
+; Remove the NPC from the holding cell.
+;
+Function RemoveFromHoldingCell()
+    ObjectReference owner = Target.GetLinkedRef(Library.Resources.LinkedOwnerSpecial)
+    If (owner == None) ; not expected  but handle it
+        owner = Game.GetPlayer()
+    EndIf
+    ObjectReference vertibird = Target.GetLinkedRef(Library.Resources.LinkedVertibird)
+    Float offsetX = 0
+    Float offsetY = 0
+    If (vertibird != None)
+        Float deltaX = vertibird.X - owner.X
+        Float deltaY = vertibird.Y - owner.Y
+        Float deltaXY = Math.Sqrt(deltaX * deltaX + deltaY * deltaY)
+        If (deltaXY > 1)
+            Float factor = 112 / deltaXY ; heuristic: place NPC 112 units away from vertibird center
+            offsetX = deltaX * factor
+            offsetY = deltaY * factor
+        EndIf
+    EndIf
+    Bool isInHoldingCell = IsInHoldingCell()
+    Target.EnableAI(true, false) ; do this before the MoveTo
+    Target.MoveTo(owner, offsetX, offsetY, 0, true)
+    Target.MoveToNearestNavmeshLocation() ; for example to prevent falling to their death when landing on Prydwen
+    Target.EvaluatePackage(false)
+    Target.SetLinkedRef(None, Library.Resources.LinkedOwnerSpecial)
+    If (vertibird != None)
+        Target.SetLinkedRef(None, Library.Resources.LinkedVertibird)
+    EndIf
+    If (isInHoldingCell)
+        RealHandcuffs:Log.Info("Removed " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " from holding cell.", Library.Settings)
+    Else
+        ; e.g. caused by mods that teleport followers who get too far away from the player without checking if their AI is enabled
+        RealHandcuffs:Log.Info("Removed " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " from holding cell (WARNING: was not in holding cell).", Library.Settings)
+    EndIf
+EndFunction
 
 ;
 ; Event handler for end of command mode.
@@ -1034,7 +1191,6 @@ Function FixWeaponDrawn()
         CancelTimer(WaitForConsciousness)
         CancelTimer(StartCheckingWeapon)
         UnregisterForAnimationEvent(Target, "weaponDraw")
-        UnregisterForRemoteEvent(Target, "OnLoad")
         Target.RemoveKeyword(TeammateReadyWeapon_DO)
         _removedReadyWeaponKeyword = true
         If (Library.Settings.InfoLoggingEnabled)
@@ -1051,7 +1207,6 @@ Function FixWeaponDrawn()
         CancelTimer(WaitForConsciousness)
         CancelTimer(StartCheckingWeapon)
         UnregisterForAnimationEvent(Target, "weaponDraw")
-        UnregisterForRemoteEvent(Target, "OnLoad")
         StartTimer(3, WaitForConsciousness)
     Else
         ; For some unknown reason NPCs sometimes get stuck with drawn weapon animations.
@@ -1063,7 +1218,6 @@ Function FixWeaponDrawn()
             CancelTimer(WaitForConsciousness)
             CancelTimer(StartCheckingWeapon)
             UnregisterForAnimationEvent(Target, "weaponDraw")
-            UnregisterForRemoteEvent(Target, "OnLoad")
             If (Library.Settings.InfoLoggingEnabled)
                 RealHandcuffs:Log.Info("Initializing MT graph: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
             EndIf
@@ -1159,6 +1313,8 @@ Group Timers
     Int Property StartCheckingWeapon = 1006 AutoReadOnly
     Int Property WaitForCombatEnd = 1007 AutoReadOnly
     Int Property UpdateWorkshopSandboxLocation = 1008 AutoReadOnly
+    Int Property CheckForVertibirdRideEnd = 1009 AutoReadOnly
+    Int Property EquipRestraintsWhenEnabled = 1010 AutoReadOnly
 EndGroup
 
 ;
@@ -1228,7 +1384,6 @@ Event OnTimer(Int aiTimerID)
                 If (Target.WaitFor3DLoad())
                     RegisterForAnimationEvent(Target, "weaponDraw")
                 EndIf
-                RegisterForRemoteEvent(Target, "OnLoad")
                 If (Target.IsWeaponDrawn())
                     FixWeaponDrawn()
                 EndIf
@@ -1255,6 +1410,40 @@ Event OnTimer(Int aiTimerID)
                 If (workshop != None && workshopId == workshop.GetWorkshopID())
                     UpdateWorkshopSandboxLocation(workshop)
                 EndIf
+            EndIf
+        EndIf
+    ElseIf (aiTimerID == CheckForVertibirdRideEnd)
+        Actor owner = Target.GetLinkedRef(Library.Resources.LinkedOwnerSpecial) as Actor
+        ObjectReference vertibird = Target.GetLinkedRef(Library.Resources.LinkedVertibird)
+        If (owner == None || vertibird == None || !IsRidingVertibird(owner, vertibird))
+            If (vertibird == None) ; not expected but handle it
+                RealHandcuffs:DebugWrapper.Notification(Target.GetDisplayName() + " released from cargo compartment of vertibird")
+            Else
+                RealHandcuffs:DebugWrapper.Notification(Target.GetDisplayName() + " released from cargo compartment of " + vertibird.GetDisplayName())
+            EndIf
+            RemoveFromHoldingCell()
+        Else
+            If (!IsInHoldingCell() && !Target.IsAIEnabled())
+                Target.MoveTo(Library.Resources.HoldingCellMarker)
+                If (Library.Settings.InfoLoggingEnabled)
+                    RealHandcuffs:Log.Info(RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " moved back to holding cell.", Library.Settings)
+                EndIf
+            EndIf
+            StartTimer(3, CheckForVertibirdRideEnd)
+        EndIf
+    ElseIf (aiTimerID == EquipRestraintsWhenEnabled)
+        If (Target.Is3DLoaded())
+            If (Target.IsEnabled())
+                Int index = 0
+                While (index < Restraints.Length)
+                    RealHandcuffs:RestraintBase restraint = Restraints[index]
+                    If (!Target.IsEquipped(restraint.GetBaseObject()))
+                        restraint.ForceEquip()
+                    EndIf
+                    index += 1
+                EndWhile
+            Else
+                StartTimer(3, EquipRestraintsWhenEnabled)
             EndIf
         EndIf
     Else

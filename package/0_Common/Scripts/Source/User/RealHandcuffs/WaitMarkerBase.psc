@@ -343,15 +343,17 @@ EndFunction
 ; Move an object reference into position on the wait marker.
 ;
 Function MoveIntoPosition(ObjectReference target)
-    If (WaitAngleZ == 0.0)
-        target.MoveTo(Self, 0.0, 0.0, 0.0, true)
-    Else
-        Float angleZ = GetAngleZ() + WaitAngleZ
-        If (angleZ >= 360)
-            angleZ -= 360
+    If (target.GetCurrentLocation() != Library.Resources.HoldingCell)
+        If (WaitAngleZ == 0.0)
+            target.MoveTo(Self, 0.0, 0.0, 0.0, true)
+        Else
+            Float angleZ = GetAngleZ() + WaitAngleZ
+            If (angleZ >= 360)
+                angleZ -= 360
+            EndIf
+            target.SetAngle(target.GetAngleX(), target.GetAngleY(), angleZ)
+            target.MoveTo(Self, 0.0, 0.0, 0.0, false)
         EndIf
-        target.SetAngle(target.GetAngleX(), target.GetAngleY(), angleZ)
-        target.MoveTo(Self, 0.0, 0.0, 0.0, false)
     EndIf
 EndFunction
 
