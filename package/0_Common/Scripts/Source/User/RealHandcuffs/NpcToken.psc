@@ -1143,9 +1143,9 @@ Function RemoveFromHoldingCell()
         EndIf
     EndIf
     Bool isInHoldingCell = IsInHoldingCell()
+    Target.EnableAI(true, false) ; do this before the MoveTo
     Target.MoveTo(owner, offsetX, offsetY, 0, true)
     Target.MoveToNearestNavmeshLocation() ; for example to prevent falling to their death when landing on Prydwen
-    Target.EnableAI(true, false)
     Target.EvaluatePackage(false)
     Target.SetLinkedRef(None, Library.Resources.LinkedOwnerSpecial)
     If (vertibird != None)
@@ -1423,6 +1423,12 @@ Event OnTimer(Int aiTimerID)
             EndIf
             RemoveFromHoldingCell()
         Else
+            If (!IsInHoldingCell() && !Target.IsAIEnabled())
+                Target.MoveTo(Library.Resources.HoldingCellMarker)
+                If (Library.Settings.InfoLoggingEnabled)
+                    RealHandcuffs:Log.Info(RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName() + " moved back to holding cell.", Library.Settings)
+                EndIf
+            EndIf
             StartTimer(3, CheckForVertibirdRideEnd)
         EndIf
     ElseIf (aiTimerID == EquipRestraintsWhenEnabled)

@@ -518,3 +518,7 @@ crash fix
 Version 0.4.12 Beta 3
 =====================
 add new function RefreshRestraint to ThirdPartyApi (no other changes, this update is for modders only)
+
+Version 0.4.12
+=====================
+small technical tweak to bound vertibird riding
