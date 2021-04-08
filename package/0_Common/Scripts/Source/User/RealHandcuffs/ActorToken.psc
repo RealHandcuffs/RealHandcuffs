@@ -212,12 +212,17 @@ EndFunction
 ; Refresh data after the game has been loaded.
 ;
 Function RefreshOnGameLoad(Bool upgrade)
+    Bool doRefresh = upgrade
     Int index = 0
     While (index < _restraints.Length)
-        _restraints[index].RefreshOnGameLoad(upgrade)
+        If (_restraints[index].IsBoundGameObjectAvailable())
+            _restraints[index].RefreshOnGameLoad(upgrade)
+        Else
+            doRefresh = true
+        EndIf
         index += 1
     EndWhile
-    If (index > 0 && upgrade)
+    If (index > 0 && doRefresh)
         RefreshEffectsAndAnimations(true, None)
     EndIf
 EndFunction
@@ -376,9 +381,13 @@ Function RefreshEffectsAndAnimations(Bool forceRefresh, ObjectReference maybeNew
     Int restraintIndex = 0
     While (restraintIndex < _restraints.Length)
         RealHandcuffs:RestraintBase restraint = _restraints[restraintIndex]
-        String impact = restraint.GetImpact()
+        String impact = restraint.GetImpact() ; do not check for IsBoundGameObjectAvailable(), it can be false directly after equipping restraints
         If (restraint.GetContainer() != _target || impact == "")
-            RealHandcuffs:Log.Warning("Removing " + restraint.GetDisplayName() + " impact from " + RealHandcuffs:Log.FormIdAsString(_target) + " " + _target.GetDisplayName() + ", restraint missing or invalid.", Library.Settings)
+            String displayName = restraint.GetDisplayName()
+            If (displayName == "")
+                displayName = "(missing restraint)"
+            EndIf
+            RealHandcuffs:Log.Warning("Removing " + displayName + " impact from " + RealHandcuffs:Log.FormIdAsString(_target) + " " + _target.GetDisplayName() + ", restraint missing or invalid.", Library.Settings)
             _restraints.Remove(restraintIndex, 1)
             If (_target == Game.GetPlayer())
                 Library.Settings.OnPlayerRestraintsChanged(Restraints)
@@ -578,6 +587,7 @@ EndFunction
 ;
 Function HandleItemUnequipped(Form akBaseObject, ObjectReference akReference)
     ; akReference is often None
+    Bool doRefresh = false
     Int index = 0
     While (index < _restraints.Length)
         RealHandcuffs:RestraintBase restraint = _restraints[index]
@@ -586,10 +596,18 @@ Function HandleItemUnequipped(Form akBaseObject, ObjectReference akReference)
                 restraint.HandleUnequipped(_target) ; forward event to restraint
                 Return
             EndIf
-        ElseIf (restraint.GetBaseObject() == akBaseObject)
-            restraint.HandleUnequipped(_target) ; forward event to restraint
-            Return
+        Else
+            Form baseObject = restraint.GetBaseObject()
+            If (baseObject == None)
+                doRefresh = true ; something went wrong, most probably missing restraint
+            ElseIf(baseObject == akBaseObject)
+                restraint.HandleUnequipped(_target) ; forward event to restraint
+                Return
+            EndIf
         EndIf
         index += 1
     EndWhile
+    If (doRefresh)
+        RefreshEffectsAndAnimations(True, None)
+    EndIf
 EndFunction

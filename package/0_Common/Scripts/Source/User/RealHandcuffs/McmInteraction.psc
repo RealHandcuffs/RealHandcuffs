@@ -163,13 +163,17 @@ String Function BuildWornRestraintsList(Actor target)
         If (index > 0)
             commaSeparatedList += ", "
         EndIf
-        commaSeparatedList += restraints[index].GetDisplayName()
-        If (restraints[index].HasKeyword(Library.Resources.TimedLock))
-            commaSeparatedList += " (remaining: "
-            Float remainingTime = restraints[index].GetRemainingTimedLockTimer()
-            Int remainingTimeWhole = Math.Floor(remainingTime)
-            Int remainingTimeFraction = Math.Floor((remainingTime - remainingTimeWhole) * 100)
-            commaSeparatedList += remainingTimeWhole + "." + remainingTimeFraction + " h)"
+        If (restraints[index].IsBoundGameObjectAvailable())
+            commaSeparatedList += restraints[index].GetDisplayName()
+            If (restraints[index].HasKeyword(Library.Resources.TimedLock))
+                commaSeparatedList += " (remaining: "
+                Float remainingTime = restraints[index].GetRemainingTimedLockTimer()
+                Int remainingTimeWhole = Math.Floor(remainingTime)
+                Int remainingTimeFraction = Math.Floor((remainingTime - remainingTimeWhole) * 100)
+                commaSeparatedList += remainingTimeWhole + "." + remainingTimeFraction + " h)"
+            EndIf
+        Else
+            commaSeparatedList += "(missing restraint)"
         EndIf
         index += 1
     EndWhile
@@ -285,6 +289,8 @@ Event OnTimer(Int aiTimerID)
             restraints[index].ForceUnequip()
             index -= 1
         EndWhile
+        RealHandcuffs:ActorToken token = Library.TryGetActorToken(target) as RealHandcuffs:NpcToken
+        token.RefreshEffectsAndAnimations(True, None) ; just to be on the safe side, e.g. if restraints are missing
     ElseIf (aiTimerID == ResetTargetedNpcAI)
         Actor target = TargetedNpc
         target.EnableAI(true, false)

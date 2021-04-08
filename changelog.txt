@@ -522,3 +522,10 @@ add new function RefreshRestraint to ThirdPartyApi (no other changes, this updat
 Version 0.4.12
 ==============
 small technical tweak to bound vertibird riding
+
+Version 0.4.13
+==============
+try to handle missing restraints
+- try to detect and fix missing restraints on game load
+- try to handle missing restraints when freeing actor from MCM menu
+- fix handling of unequip event to catch cases where a device is unequipped and directly deleted, e.g. by "removeitem" console command
