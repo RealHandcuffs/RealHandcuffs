@@ -389,7 +389,7 @@ Function AssignActor(WorkshopNPCScript newActor, Bool isAutoAssignment)
     assignedActor = newActor
     If (assignedActor != None && assignedActor != _assignedActor)
         RealHandcuffs:WaitMarkerBase oldWaitMarker = assignedActor.GetLinkedRef(Library.Resources.WaitMarkerLink) as RealHandcuffs:WaitMarkerBase
-        If (oldWaitMarker != None && oldWaitMarker.GetRegisteredActor() == assignedActor)
+        If (oldWaitMarker != None && oldWaitMarker != Self && oldWaitMarker.GetRegisteredActor() == assignedActor)
             oldWaitMarker.Unregister(assignedActor)
         EndIf
         _assignedActor = assignedActor

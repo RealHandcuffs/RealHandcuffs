@@ -525,8 +525,9 @@ small technical tweak to bound vertibird riding
 
 Version 0.4.13
 ==============
-try to handle missing restraints
+various small fixes
+- add happiness bonus to prisoner mat furniture
+- fix assignment of current follower to prisoner mat
 - try to detect and fix missing restraints on game load
 - try to handle missing restraints when freeing actor from MCM menu
 - fix handling of unequip event to catch cases where a device is unequipped and directly deleted, e.g. by "removeitem" console command
-- add happiness bonus to prisoner mat furniture
