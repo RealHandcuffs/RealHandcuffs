@@ -360,10 +360,9 @@ Bool Function RunPlayerLockpickInteraction(Int lockLevel = -1)
     EndIf
     Utility.Wait(0.1)
     invisibleDoor.Activate(player, true)
-    Utility.Wait(0.1)
+    Utility.Wait(0.5) ; wait a bit longer to make sure that the lockpicking UI has enough time
     Bool unlocked = !invisibleDoor.IsLocked()
-    invisibleDoor.DisableNoWait()
-    invisibleDoor.Delete()
+    ; no need to delete the invisible door manually as it was created with abDeleteWhenAble = true
     Return unlocked
 EndFunction
 
