@@ -348,10 +348,9 @@ Bool Function RunPlayerLockpickInteraction(Int lockLevel = -1)
     If (player.GetItemCount(Resources.BobbyPin) == 0)
         Return false
     EndIf
-    ObjectReference invisibleDoor = player.PlaceAtMe(Resources.InvisibleDoor, 1, false, true, true)
-    invisibleDoor.EnableNoWait()
-    invisibleDoor.SetLockLevel(lockLevel)
-    invisibleDoor.Lock(true, false)
+    Resources.InvisibleDoor.EnableNoWait()
+    Resources.InvisibleDoor.SetLockLevel(lockLevel)
+    Resources.InvisibleDoor.Lock(true, false)
     If (UI.IsMenuOpen("PipboyMenu"))
         UI.CloseMenu("PipboyMenu")
     EndIf
@@ -359,10 +358,10 @@ Bool Function RunPlayerLockpickInteraction(Int lockLevel = -1)
         UI.CloseMenu("ContainerMenu")
     EndIf
     Utility.Wait(0.1)
-    invisibleDoor.Activate(player, true)
+    Resources.InvisibleDoor.Activate(player, true)
     Utility.Wait(0.5) ; wait a bit longer to make sure that the lockpicking UI has enough time
-    Bool unlocked = !invisibleDoor.IsLocked()
-    ; no need to delete the invisible door manually as it was created with abDeleteWhenAble = true
+    Bool unlocked = !Resources.InvisibleDoor.IsLocked()
+    Resources.InvisibleDoor.DisableNoWait()
     Return unlocked
 EndFunction
 
