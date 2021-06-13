@@ -522,3 +522,14 @@ add new function RefreshRestraint to ThirdPartyApi (no other changes, this updat
 Version 0.4.12
 ==============
 small technical tweak to bound vertibird riding
+
+Version 0.4.13
+==============
+various small fixes
+- add happiness bonus to prisoner mat furniture
+- fix assignment of current follower to prisoner mat
+- update LL FourPlay plugin to v41
+- try to detect and fix missing restraints on game load
+- try to handle missing restraints when freeing actor from MCM menu
+- fix handling of unequip event to catch cases where a device is unequipped and directly deleted, e.g. by "removeitem" console command
+- change lockpicking interaction to try and fix a crash bug (thanks to lampuiho for discovering the fix)

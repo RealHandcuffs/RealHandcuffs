@@ -169,7 +169,7 @@ Container Property InvisibleContainer Auto Const Mandatory
 ;
 ; A invisible door that can used to initiate the lockpicking minigame.
 ;
-Door Property InvisibleDoor Auto Const Mandatory
+ObjectReference Property InvisibleDoor Auto Const Mandatory
 
 ;
 ; Bobby pin object.

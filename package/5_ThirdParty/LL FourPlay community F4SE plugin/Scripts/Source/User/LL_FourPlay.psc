@@ -4,7 +4,7 @@ Scriptname LL_FourPlay Native Hidden
 ;	Shared community library of utility function from LoverLab distributed with FourPlay resources as a F4SE plugin with sources included
 ;
 
-;	Version 39 for runtime 1.10.163	2020 09 24 by jaam and Chosen Clue and EgoBallistic
+;	Version 40 for runtime 1.10.163	2021 04 11 by jaam and Chosen Clue and EgoBallistic and Fedim
 
 ;	Runtime version: This file should be runtime neutral. The accompanying F4SE plugin (ll_fourplay_1_10_163.dll) is NOT!
 ;		You need to always use a plugin corresponding with the game version you play.
@@ -17,7 +17,7 @@ Scriptname LL_FourPlay Native Hidden
 
 ; Returns the version of this script (when someone has not forgotten to update it :) )
 Float Function GetLLFPScriptVersion() global
-	return 39.0
+	return 40.0
 endFunction
 
 ; Returns the version of the plugin and servers to verify it is properly installed.
@@ -310,4 +310,28 @@ bool Function PrintConsole(String text) native global
 
 ; hidden function, use ResizeVarArray instead
 Var[] Function ResizeVarArrayInternal(Var[] theArray, int theSize, Var theFill) native global
+
+;
+;	Wav function (by Fedim)
+;
+
+;	Plays a WAV file. FileName relative to "Data\Sound\Voice\"
+;	Option is possible "Data\Sound\Voice\MyPlugin\sound001.wav"
+Function PlaySoundWav(string FileName) native global
+
+;	Returns the current volume level of the player (-1 = 0xFFFFFFFF -> max)
+;	LowWord	  - left channel volume
+;	HeighWorg - right channel volume
+;	0 <= volume <= 65535 (0xFFFF)
+int Function GetVolumeWav() native global
+
+;	Sets the volume of the player channels
+;	0 <= volume <=65535 (0xFFFF)
+int Function SetVolumeWav(int volumeA, int volumeB) native global
+
+;	Randomly selects a line from the SectionText section of the "Data\F4SE\Plugins\PluginName.ini" file, plays the WAV and returns the text
+;	ini file must be UTF-8 encoded
+;	Sounds should be in the "Data\Sound\Voice\PluginName.esp\"
+String Function VoiceMessage(String PluginName, String SectionText) native global
+
 
