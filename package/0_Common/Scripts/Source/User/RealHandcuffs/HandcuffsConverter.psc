@@ -349,25 +349,8 @@ Function ConvertLegacyHandcuffs(ObjectReference item)
             baseId = (256 - modId) * 0x1000000 + formId
         EndIf
         ; spawn handcuffs, with mods if necessary
-        RealHandcuffs:HandcuffsBase replacement
+        RealHandcuffs:HandcuffsBase replacement = CreateHandcuffsAt(item, (baseId * 37) % 100 <= PercentHinged, (baseId * 83) % 100 <= PercentHighSecurity)
         ObjectReference cont = item.GetContainer()
-        If ((baseId * 37) % 100 <= PercentHinged)
-            If (cont == None)
-                replacement = item.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:HandcuffsBase
-            Else
-                replacement = cont.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:HandcuffsBase
-            EndIf
-        Else
-            If (cont == None)
-                replacement = item.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:HandcuffsBase
-            Else
-                replacement = cont.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:HandcuffsBase
-            EndIf
-        EndIf
-        replacement.EnableNoWait()
-        If ((baseId * 83) % 100 <= PercentHighSecurity)
-            replacement.SetLockMod(ModHighSecurityLock)
-        EndIf
         Form keyObject = replacement.GetKeyObject()
         If (cont == None)
             item.DisableNoWait()
@@ -386,6 +369,39 @@ Function ConvertLegacyHandcuffs(ObjectReference item)
             cont.RemoveItem(item, 1, true, None)
         EndIf
     EndIf
+EndFunction
+
+;
+; Create random handcuffs close to the given object reference.
+;
+RealHandcuffs:HandcuffsBase Function CreateRandomHandcuffsAt(ObjectReference ref)
+    Return CreateHandcuffsAt(ref, Utility.RandomInt(1, 100) <= PercentHinged, Utility.RandomInt(1, 100) <= PercentHighSecurity)
+EndFunction
+
+;
+; Create handcuffs close to the given object reference.
+;
+RealHandcuffs:HandcuffsBase Function CreateHandcuffsAt(ObjectReference ref, Bool hinged, Bool highSecurity)
+    RealHandcuffs:HandcuffsBase cuffs
+    ObjectReference cont = ref.GetContainer()
+    If (hinged)
+        If (cont == None)
+            cuffs = ref.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:HandcuffsBase
+        Else
+            cuffs = cont.PlaceAtMe(HandcuffsHinged, 1, false, true, false) as RealHandcuffs:HandcuffsBase
+        EndIf
+    Else
+        If (cont == None)
+            cuffs = ref.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:HandcuffsBase
+        Else
+            cuffs = cont.PlaceAtMe(Handcuffs, 1, false, true, false) as RealHandcuffs:HandcuffsBase
+        EndIf
+    EndIf
+    cuffs.EnableNoWait()
+    If (highSecurity)
+        cuffs.SetLockMod(ModHighSecurityLock)
+    EndIf
+    Return cuffs
 EndFunction
 
 ;

@@ -381,6 +381,10 @@ Function ApplyEffects(Bool forceRefresh, RealHandcuffs:RestraintBase handsBoundB
             RealHandcuffs:Log.Info("Applying hands bound behind back impact on: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
         EndIf
         _handsBoundBehindBack = true
+        ; remove alerted flag as this would keep the weapon drawn
+        If (Target.IsAlerted())
+            Target.SetAlert(false)
+        EndIf
         ; add 'bound hands' keyword; this will apply the mod's no combat packages on the Library.RestrainedNpcs RefCollectionAlias
         Target.AddKeyword(BoundHands)
         ; prevent player teammates from drawing weapons when player does
@@ -816,6 +820,9 @@ Function HandleCombatStateChanged(Actor akSender, Actor akTarget, int aeCombatSt
                 EndIf
             EndIf
         EndIf
+        If (Target.IsAlerted()) ; do this here, too, in addition to in OnAnimationEvent
+            Target.SetAlert(false)
+        EndIf
     EndIf
 EndFunction
 
@@ -1186,15 +1193,20 @@ EndEvent
 ; Try to fix the condition that the NPC has the weapon drawn.
 ;
 Function FixWeaponDrawn()
-    If (Target.HasKeyword(TeammateReadyWeapon_DO))
-        ; The keyword was added to the target since the handcuffs have been equipped, remove it again and cycle the AI.
+    If (Target.IsAlerted() || Target.HasKeyword(TeammateReadyWeapon_DO))
+        ; The alerted flag or the keyword was added to the target since the handcuffs have been equipped, remove it again and cycle the AI.
         CancelTimer(WaitForConsciousness)
         CancelTimer(StartCheckingWeapon)
         UnregisterForAnimationEvent(Target, "weaponDraw")
-        Target.RemoveKeyword(TeammateReadyWeapon_DO)
-        _removedReadyWeaponKeyword = true
-        If (Library.Settings.InfoLoggingEnabled)
-            RealHandcuffs:Log.Info("Removed ready weapon keyword: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
+        If (Target.IsAlerted())
+            Target.SetAlert(false)
+        EndIf
+        If (Target.HasKeyword(TeammateReadyWeapon_DO))
+            Target.RemoveKeyword(TeammateReadyWeapon_DO)
+            _removedReadyWeaponKeyword = true
+            If (Library.Settings.InfoLoggingEnabled)
+                RealHandcuffs:Log.Info("Removed ready weapon keyword: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
+            EndIf
         EndIf
         Target.AddKeyword(Library.Resources.CycleAi)
         Target.EvaluatePackage(true)
@@ -1221,8 +1233,37 @@ Function FixWeaponDrawn()
             If (Library.Settings.InfoLoggingEnabled)
                 RealHandcuffs:Log.Info("Initializing MT graph: " + RealHandcuffs:Log.FormIdAsString(Target) + " " + Target.GetDisplayName(), Library.Settings)
             EndIf
+            ; Workaround: Things are not working if no weapon is equipped (i.e. "fists" are being drawn)
+            ; So add and equip a weapon if there is none equipped
+            Weapon addedWeapon = None
+            Ammo maybeAddedAmmo = None
+            Int originalAmmoCount = 0
+            If (Target.GetEquippedWeapon() == None)
+                Weapon tenMillimeter = Game.GetFormFromFile(0x004822, "Fallout4.esm") as Weapon
+                If (Target.GetItemCount(tenMillimeter) == 0)
+                    Target.AddItem(tenMillimeter, 1, true)
+                    addedWeapon = tenMillimeter
+                EndIf
+                maybeAddedAmmo = tenMillimeter.GetAmmo()
+                originalAmmoCount = Target.GetItemCount(maybeAddedAmmo)
+                Target.EquipItem(tenMillimeter, true, true)
+            EndIf
+            ; Reinitialize the MT graph to fix the animations
             Idle InitializeMTGraphInstant = Game.GetFormFromFile(0x080D4A, "Fallout4.esm") as Idle
             Target.PlayIdle(InitializeMTGraphInstant)
+            ; Remove the temporarily added weapon (and ammo, the game sometimes adds ammo)
+            If (addedWeapon != None)
+                Utility.Wait(0.016)
+                ObjectReference droppedWeapon = Target.DropObject(addedWeapon, 1) ; do not use RemoveItem, it can cause "unequip all" bug
+                droppedWeapon.DisableNoWait()
+                droppedWeapon.Delete()
+            EndIf
+            If (maybeAddedAmmo != None)
+                Int removeCount = Target.GetItemCount(maybeAddedAmmo) - originalAmmoCount
+                If (removeCount > 0)
+                    Target.RemoveItem(maybeAddedAmmo, removeCount, true, None)
+                EndIf
+            EndIf
             StartTimer(3, StartCheckingWeapon)
         EndIf
     EndIf

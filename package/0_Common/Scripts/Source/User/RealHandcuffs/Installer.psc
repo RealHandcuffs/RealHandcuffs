@@ -10,6 +10,7 @@ RealHandcuffs:ShockCollarTerminalData Property TerminalData Auto Const Mandatory
 
 Perk Property ChangePose Auto Const Mandatory
 Perk Property InteractWithKnockedOut Auto Const Mandatory
+Perk Property OpenInventoryOfBound Auto Const Mandatory
 RefCollectionAlias Property BleedoutActors Auto Const Mandatory
 RefCollectionAlias Property KnockoutActors Auto Const Mandatory
 RefCollectionAlias Property PrisonerMatActors Auto Const Mandatory
@@ -24,7 +25,7 @@ String Property UpdatePendingState = "UpdatePending" AutoReadOnly ; 'update pend
 String Property DisabledState      = "Disabled"      AutoReadOnly ; 'disabled' state, will never change
 
 String Property StateVersion       = "V1"            AutoReadOnly ; internal state version string, will change when a new version requires different install/uninstall steps
-String Property DetailedVersion    = "0.4.13"        AutoReadOnly ; user version string, will change with every new version
+String Property DetailedVersion    = "0.4.14"        AutoReadOnly ; user version string, will change with every new version
 
 String Property InstalledDetailedVersion Auto ; currently installed detailed version
 String Property InstalledEdition Auto         ; currently installed edition
@@ -278,6 +279,8 @@ State V1
         If (earlyGameOver)
             RealHandcuffs:HandcuffsConverter converter = (Self as ScriptObject) as RealHandcuffs:HandcuffsConverter
             converter.Initialize(upgrade)
+            RealHandcuffs:QuestIntegration observer = (Self as ScriptObject) as RealHandcuffs:QuestIntegration
+            observer.Initialize(upgrade)
         Else
             RealHandcuffs:Log.Info("Detected early game, skipping part of initialization.", Library.Settings)
             RegisterForRemoteEvent(MQ102, "OnStageSet")
@@ -353,6 +356,9 @@ State V1
         EndIf
         If (!player.HasPerk(InteractWithKnockedOut))
             player.AddPerk(InteractWithKnockedOut)
+        EndIf
+        If (!player.HasPerk(OpenInventoryOfBound))
+            player.AddPerk(OpenInventoryOfBound)
         EndIf
         ; run third party compatibility plugin installers
         If (Library.SoftDependencies.JBCompatibilityActive)
@@ -437,6 +443,10 @@ State V1
             RealHandcuffs:HandcuffsConverter converter = (Self as ScriptObject) as RealHandcuffs:HandcuffsConverter
             If (!converter.IsInitialized)
                 converter.Initialize(false)
+            EndIf
+            RealHandcuffs:QuestIntegration observer = (Self as ScriptObject) as RealHandcuffs:QuestIntegration
+            If (!observer.IsInitialized)
+                observer.Initialize(false)
             EndIf
         Else
             RealHandcuffs:Log.Info("Detected early game, skipping part of maintenance.", Library.Settings)
@@ -551,6 +561,8 @@ State V1
         Library.RestoreCommandModeActivatePackage()
         RealHandcuffs:HandcuffsConverter converter = (Self as ScriptObject) as RealHandcuffs:HandcuffsConverter
         converter.Uninitialize(upgrade)
+        RealHandcuffs:QuestIntegration observer = (Self as ScriptObject) as RealHandcuffs:QuestIntegration
+        observer.Uninitialize(upgrade)
         Actor player = Game.GetPlayer()
         If (!upgrade)
             ; suspend player token if this is not an upgrade
@@ -613,6 +625,9 @@ State V1
         EndIf
         If (player.HasPerk(InteractWithKnockedOut))
             player.RemovePerk(InteractWithKnockedOut)
+        EndIf
+        If (player.HasPerk(OpenInventoryOfBound))
+            player.RemovePerk(OpenInventoryOfBound)
         EndIf
         ; remove the obsolete perk, necessary to support old v0.1 savegames
         If (player.HasPerk(RH_Obsolete_ObservePlayerCrosshair))

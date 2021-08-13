@@ -533,3 +533,10 @@ various small fixes
 - try to handle missing restraints when freeing actor from MCM menu
 - fix handling of unequip event to catch cases where a device is unequipped and directly deleted, e.g. by "removeitem" console command
 - change lockpicking interaction to try and fix a crash bug (thanks to lampuiho for discovering the fix)
+
+Version 0.4.14
+==============
+further improvements
+- fix bound NPCs drawing their weapons when in alert state by clearing alert state (discovered with PANPC but a general issue)
+- fix bound NPCs visually beeing free after the game forces them to "draw" theirs fists
+- integrate handcuffs with quest MinRecruit02 "Kidnapping at ...": the victim will now wear handcuffs, the boss will have a key, and the player can open the victim's inventory

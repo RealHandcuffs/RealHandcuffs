@@ -115,13 +115,17 @@ Function StartAnimationAndWait(Actor akActor, String animationToPlay, Bool playE
         Return ; concurrent stop of animation, abort
     EndIf
     PlaceIdleMarker()
-    If (cellIsAttached && playEnterAnimation)
-        Float waitTime = Library.AnimationHandler.PlayEnterFromStand(akActor, _currentAnimation)
-        TranslateToIdleMarker(akActor, waitTime)
-        Utility.Wait(waitTime)
-        akActor.StopTranslation()
-        If (_currentAnimation == "")
-            Return ; concurrent stop of animation, abort
+    If (cellIsAttached)
+        If (playEnterAnimation)
+            Float waitTime = Library.AnimationHandler.PlayEnterFromStand(akActor, _currentAnimation)
+            TranslateToIdleMarker(akActor, waitTime)
+            Utility.Wait(waitTime)
+            akActor.StopTranslation()
+            If (_currentAnimation == "")
+                Return ; concurrent stop of animation, abort
+            EndIf
+        Else
+            TranslateToIdleMarker(akActor, 0.1)
         EndIf
     EndIf
     If (cellIsAttached)
