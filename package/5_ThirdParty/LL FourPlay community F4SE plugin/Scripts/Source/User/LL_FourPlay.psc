@@ -4,7 +4,7 @@ Scriptname LL_FourPlay Native Hidden
 ;	Shared community library of utility function from LoverLab distributed with FourPlay resources as a F4SE plugin with sources included
 ;
 
-;	Version 40 for runtime 1.10.163	2021 04 11 by jaam and Chosen Clue and EgoBallistic and Fedim
+;	Version 42 for runtime 1.10.163	2021 09 13 by jaam and Chosen Clue and EgoBallistic and Fedim
 
 ;	Runtime version: This file should be runtime neutral. The accompanying F4SE plugin (ll_fourplay_1_10_163.dll) is NOT!
 ;		You need to always use a plugin corresponding with the game version you play.
@@ -17,7 +17,7 @@ Scriptname LL_FourPlay Native Hidden
 
 ; Returns the version of this script (when someone has not forgotten to update it :) )
 Float Function GetLLFPScriptVersion() global
-	return 40.0
+	return 42.0
 endFunction
 
 ; Returns the version of the plugin and servers to verify it is properly installed.
@@ -295,6 +295,12 @@ Int Function GetRecordFlags(Form akForm) native global
 
 ; Return a form's formType
 Int Function GetFormType(Form akForm) native global
+
+; Return whether form is persistent or not
+Bool Function IsPersistent(Form akForm) native global
+
+; Set a form persistent or not. Returns false if form does not exist
+Bool Function SetPersistent(Form akForm, bool akFlag) native global
 
 ;
 ;	Misc functions

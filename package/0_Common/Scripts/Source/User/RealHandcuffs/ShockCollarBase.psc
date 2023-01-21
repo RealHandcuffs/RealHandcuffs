@@ -565,8 +565,8 @@ Function Explode(Actor target)
         If (target.IsEssential())
             target.SetEssential(false) ; to make dismember more reliable
         EndIf
-        target.Dismember("Head1", true, true, false)
         target.KillEssential()
+        target.Dismember("Head1", true, true, false)
     EndIf
     ; destroy the collar
     If (GetContainer() != None)

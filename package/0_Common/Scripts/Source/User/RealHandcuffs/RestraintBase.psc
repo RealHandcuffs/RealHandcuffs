@@ -518,7 +518,7 @@ Function ForceEquip(Bool unequipConflicting = false, Bool setDefaultParameters =
             SetStateAfterEquip(target, false)
         EndIf
         Form baseObject = GetBaseObject()
-        If (!target.IsEquipped(baseObject) && !target.IsInPowerArmor())
+        If (!target.IsEquipped(baseObject) && !target.WornHasKeyword(Library.ArmorTypePower))
             If (!target.IsEnabled())
                 If (token != None)
                     token.EquipRestraintsWhenEnabled()

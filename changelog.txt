@@ -538,5 +538,14 @@ Version 0.4.14
 ==============
 further improvements
 - fix bound NPCs drawing their weapons when in alert state by clearing alert state (discovered with PANPC but a general issue)
-- fix bound NPCs visually beeing free after the game forces them to "draw" theirs fists
+- fix bound NPCs visually being free after the game forces them to "draw" theirs fists
 - integrate handcuffs with quest MinRecruit02 "Kidnapping at ...": the victim will now wear handcuffs, the boss will have a key, and the player can open the victim's inventory
+
+Version 0.4.15
+==============
+tweaks
+- update LL FourPlay plugin to v42
+- switch to slot 58 for better compatibility with devious devices
+- make keeping the slot the default option in the installer
+- try to fix power armor helmets being unequipped automatically because of worn collars
+- try to fix explosive collar not dismembering player
