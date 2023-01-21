@@ -10,6 +10,7 @@ RealHandcuffs:HandcuffsConverter Property Converter Auto Const Mandatory
 GlobalVariable Property CurrentInteractionType Auto Const Mandatory
 GlobalVariable Property CurrentInteractionLockLevel Auto Const Mandatory
 Keyword Property ActorTypeRobot Auto Const Mandatory
+Keyword Property ArmorTypePower Auto Const Mandatory
 Keyword Property Female Auto Const Mandatory
 Keyword Property LinkedActorToken Auto Const Mandatory
 Keyword Property LinkedRemoteTriggerTarget Auto Const Mandatory

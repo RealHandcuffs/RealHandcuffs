@@ -88,8 +88,8 @@
       <optionalFileGroups order="Explicit">
         <group name="Dependency" type="SelectAny">
           <plugins order="Explicit">
-            <plugin name="LLFP Plugin v41">
-              <description><![CDATA[<h4>LL FourPlay Community F4SE Plugin v41</h4><p>Real Handcuffs requires the LLFP F4SE plugin, v28 or later. Select this option to install LLFP F4SE plugin v41 (for runtime 1.10.163). You can skip this step if you have the latest AAF version. Also skip this step if you want to manually control the version of the LLFP F4SE plugin, for example if have an older Fallout 4 runtime.</p>]]></description>
+            <plugin name="LLFP Plugin v42">
+              <description><![CDATA[<h4>LL FourPlay Community F4SE Plugin v42</h4><p>Real Handcuffs requires the LLFP F4SE plugin, v28 or later. Select this option to install LLFP F4SE plugin v42 (for runtime 1.10.163). You can skip this step if you have the latest AAF version. Also skip this step if you want to manually control the version of the LLFP F4SE plugin, for example if have an older Fallout 4 runtime.</p>]]></description>
               <conditionFlags>
                 <flag name="install_llfp">on</flag>
               </conditionFlags>
@@ -211,19 +211,19 @@
       <optionalFileGroups order="Explicit">
         <group name="Item Slots" type="SelectExactlyOne">
           <plugins order="Explicit">
-            <plugin name="Change Slots to Devious Devices Slots">
-              <description><![CDATA[<p>Use slots 37/38 for handcuffs (same as Devious Devices wrist shackles).</p>]]></description>
+            <plugin name="Keep Standard Slots">
+              <description><![CDATA[<p>Use slot 58 for handcuffs (this is the standard slot).</p>]]></description>
               <conditionFlags>
-                <flag name="compatibility_dd_change_slots">on</flag>
+                <flag name="compatibility_dd_change_slots">off</flag>
               </conditionFlags>
               <typeDescriptor>
                 <type name="Recommended"/>
               </typeDescriptor>
             </plugin>
-            <plugin name="Keep Standard Slots">
-              <description><![CDATA[<p>Use slot 54 for handcuffs (this is the standard slot).</p>]]></description>
+            <plugin name="Change Slots to Devious Devices Slots">
+              <description><![CDATA[<p>Use slots 37/38 for handcuffs (same as Devious Devices wrist shackles).</p>]]></description>
               <conditionFlags>
-                <flag name="compatibility_dd_change_slots">off</flag>
+                <flag name="compatibility_dd_change_slots">on</flag>
               </conditionFlags>
               <typeDescriptor>
                 <type name="Optional"/>
