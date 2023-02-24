@@ -549,3 +549,9 @@ tweaks
 - make keeping the slot the default option in the installer
 - try to fix power armor helmets being unequipped automatically because of worn collars
 - try to fix explosive collar not dismembering player
+
+Version 0.4.16
+==============
+fix
+- change HEDR version to 1.0, this may or may not solve a rare issue with keywords
+- change the place that bound workshop NPCs use for "hanging around" to their bed instead of their work place, unless the work place is a 24 hours work place

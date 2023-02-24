@@ -740,10 +740,10 @@ Bool Function UpdateWorkshopSandboxLocation(WorkshopScript workshop)
         If (resourceObject != None && resourceObject.WorkshopParent != None)
             Int priority = 0
             If (resourceObject.IsBed())
-                priority += 1
-            ElseIf (resourceObject.RequiresActor())
-                ; prefer objects that require an actor and are not bed (i.e. work objects)
+                ; prefer beds over work objects
                 priority += 2
+            ElseIf (resourceObject.RequiresActor())
+                priority += 1
             EndIf
             If (resourceObject.bWork24Hours)
                 ; greatly prefer objects that demand 24-hour work
